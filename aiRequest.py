@@ -1,29 +1,43 @@
-from datetime import datetime
-from tabulate import tabulate
-from bs4 import BeautifulSoup
-import requests
+# VERSION 1
 
-start_time = datetime.now()
+from datetime import datetime   # for å regne tiden til programmet
+from tabulate import tabulate   # for å lage tabell i python
+from bs4 import BeautifulSoup   # for å gjøre html-koden kompakt
+import requests                 # for å gjøre request (html-request)
 
-html_text = requests.get('https://www.finn.no/bap/forsale/search.html?category=0.93&sort=RELEVANCE').text
-soup = BeautifulSoup(html_text, 'lxml')
+start_time = datetime.now()     # starter tid
 
-articles = soup.find_all('article', class_="ads__unit")
+category = input()                          # input link for which category to collect data from
+html_text = requests.get(category).text     # extracting the html code from website
+soup = BeautifulSoup(html_text, 'lxml')     # making the html-code compact
 
-table = [['TITLE', 'PRICE']]
+# start of the algorime:
+all_ads_on_site = soup.find_all('article', class_="ads__unit")     # finding all ads in the category
 
-# vi gjør det litt redundant men fikser dette etterhvert
+table = [['TITLE', 'PRICE']]                # declaring a array which will be used to create a table
+
 count = 0
-for product in articles:
-    product_link = product.find('a', href=True)
-    link = product_link['href']
+for ad in all_ads_on_site:
+    # extracting link for all the ads on the site
+    product_link_code = ad.find('a', href=True)
+    ad_link = product_link_code['href']
 
+    # !! we have an error which we havent figured out a fix for just yet, where the first "ad_link" will not have
+    # the full link, and wil only contain the words after "https://www.finn.no", so this is a temporary fix for that !!
     if count == 0:
-        link = 'https://www.finn.no' + link
-    product_code = requests.get(f'{link}').text
-    soup = BeautifulSoup(product_code, 'lxml')
-    sections = soup.find_all('section', class_="panel u-mb16")
+        pass
+        # ad_link = 'https://www.finn.no' + ad_link
 
+    # now we are inside each individual ad, here we will collect data
+
+    ad_html_code = requests.get(f'{ad_link}').text      # fetching the html code for each ad
+    soup = BeautifulSoup(ad_html_code, 'lxml')          # making the html code compact
+
+    # each ad inn "finn.no" has a section with class_name "panel u-mb16"
+    sections = soup.find_all('section', class_="panel u-mb16")
+    print(sections)
+
+    # collecting information by using class_names
     for information in sections:
         titles = information.find('h1', class_="u-t2 u-mt16")
         prices_tilSalgs = information.find('div', class_="u-t1")
@@ -50,7 +64,7 @@ for product in articles:
         table.append( [titles.text, final_product_price] )
     count = count+1
 
-# print(count)
+print(count)
 print(tabulate(table))
 end_time = datetime.now()
 print(end_time - start_time)
