@@ -1,19 +1,20 @@
-# VERSION 3: Flere lenker
+# VERSION 4:
+# scraped brand and type of the products
 
-from datetime import datetime  # for å regne tiden til programmet
-from tabulate import tabulate  # for å lage tabell i python
-from bs4 import BeautifulSoup  # for å gjøre html-koden kompakt
-import requests  # for å gjøre request (html-request)
+from datetime import datetime  # to calculate the time of the program
+from tabulate import tabulate  # to create table in python
+from bs4 import BeautifulSoup  # to make the html code compact
+import requests  # to make request (html-request)
 
 from openpyxl import Workbook, load_workbook
 
-all_brands_array = ["candy", "samsung", "lg"] # må legge til flere brands
-all_type_array = ["kombiskap","kjøleskap", "fryser"]
+all_brands_array = ["candy", "samsung", "lg", "whirlpool", "aeg", "husqvarna", "electrolux", "kenwood"]  # need to add more brands
+all_type_array = ["kombiskap", "kjøleskap", "fryser"]  # need to add more types
 
 number_of_ads_scraped = 0
 
 
-# NB: we find and use the first brand_name, in fututre maybe we scrape even more.
+# NB: we find and use the only first brand_name, in future maybe we scrape even more...
 def scrape_brand(div_element):
     if div_element is None:
         return "EMPTY"
@@ -26,6 +27,7 @@ def scrape_brand(div_element):
         return "Annet"
 
 
+# NB: we find and use the only first type name, in future maybe we scrape even more...
 def scrape_type(div_element):
     if div_element is None:
         return "EMPTY"
@@ -43,7 +45,6 @@ def scrape(data):
     category_title = data.get("category_description")
     category_link = data.get("category_link")
     number_of_ads_to_scrap = int(data.get("number_of_ads"))
-    global number_of_ads_scraped
     number_of_ads_scraped = 0
 
     # defining a work excel book
@@ -61,24 +62,32 @@ def scrape(data):
     ws_gibud = wb["Gi bud"]
 
     # start of scraper algorithme
-    def funk(page_number):
+    page_number = 1
+    while True:
         if number_of_ads_scraped >= number_of_ads_to_scrap:
             print(f"Total ads from category: {category_title} collected is {number_of_ads_scraped}")
+            wb.save(category_title + ".xlsx")
             return
 
         link = category_link + "&page=" + str(page_number)
         print(link)
 
-        html_code = requests.get(link).text      # extracting the html code from website
+        html_code = requests.get(link).text  # extracting the html code from website
         soup = BeautifulSoup(html_code, 'lxml')  # making the html-code compact
 
         all_ads_on_site = soup.find_all('article', class_="ads__unit")  # finding all ads in the category
         number_of_ads_on_site = len(all_ads_on_site)
 
         count_ads_on_site = 0
+
         for ad in all_ads_on_site:
             ad_link_code = ad.find('a', href=True)
             ad_link = ad_link_code['href']
+
+            # checking if there are any sponsored ads on this category/site
+            sponsored_ad = ad.find('span', class_="status status--sponsored u-mb8")
+            if sponsored_ad is not None:
+                ad_link = "https://www.finn.no" + ad_link
 
             ad_html_code = requests.get(f'{ad_link}').text  # fetching the html code for each ad
             soup = BeautifulSoup(ad_html_code, 'lxml')  # making the html code compact
@@ -93,8 +102,11 @@ def scrape(data):
 
             # mal: https://www.finn.no/bap/forsale/ad.html?finnkode=258968174
             # finding additional data about the ad
-            table_additional_info = soup.find('table', _class="u-width-auto u-mt16")
-            ad_info_text = soup.find('div', _class="preserve-linebreaks")      # må gjøre sjekk på om det ikke er tom
+            table_additional_info_html_code = soup.find('table', class_="u-width-auto u-mt16")
+            ad_info_text_html_code = soup.find('div', class_="preserve-linebreaks")
+
+            # TO-DO LIST:
+            # must check if it is not empty
 
             # finding product brand and updating
             product_brand = ""
@@ -102,42 +114,47 @@ def scrape(data):
             found_brand = False
             found_type = False
 
-            if table_additional_info is not None:
-                # table_th = (table_additional_info.find_all('th', _class="u-text-left u-no-break u-pa0"))
-                table_td = (table_additional_info.find_all('td', _class="u-pl16"))
-                for td in table_td:
-                    if td.text.lower() in all_brands_array:
-                        product_brand = td.text.lower()
-                        found_brand = True
+            ad_title_split = ad_title.split(" ")
+            for word in ad_title_split:
+                if word.lower() in all_brands_array:
+                    product_brand = word.lower()
+                    found_brand = True
 
-                    if td.text.lower() in all_type_array:
-                        product_type = td.text.lower()
-                        found_type = True
+                if word.lower() in all_type_array:
+                    product_type = word.lower()
+                    found_type = True
 
-                if found_brand is False :
-                    product_brand = scrape_brand(ad_info_text)
-                if found_type is False :
-                    product_type = scrape_type(ad_info_text)
-            else:
-                product_type = scrape_type(ad_info_text)
-                product_brand = scrape_brand(ad_info_text)
+            if found_brand is False or found_type is False:
+                if table_additional_info_html_code is not None:
+                    # table_th = (table_additional_info_html_code.find_all('th', class_="u-text-left u-no-break u-pa0"))
+                    table_td = (table_additional_info_html_code.find_all('td', class_="u-pl16"))
+                    for td in table_td:
+                        if td.text.lower() in all_brands_array:
+                            product_brand = td.text.lower()
+                            found_brand = True
 
+                        if td.text.lower() in all_type_array:
+                            product_type = td.text.lower()
+                            found_type = True
 
+                    if found_brand is False:
+                        product_brand = scrape_brand(ad_info_text_html_code)
+                    if found_type is False:
+                        product_type = scrape_type(ad_info_text_html_code)
+                else:
+                    product_type = scrape_type(ad_info_text_html_code)
+                    product_brand = scrape_brand(ad_info_text_html_code)
 
-
-
-
-            # ad_title = ad_title.text
-            # sorting based on payment_type
+            # Adding information to the sheets
             if ad_payment_type == "Til salgs":
                 if ad_price is None:
-                    ws_gibud.append([ad_title, "Gi bud"])
+                    ws_gibud.append([ad_title, product_brand, product_type, "Gi bud"])
                 else:
-                    ws_tilsalgs.append([ad_title, ad_price.text])
+                    ws_tilsalgs.append([ad_title, product_brand, product_type, ad_price.text])
             elif ad_payment_type == "Ønskes kjøpt":
-                ws_onskeskjopt.append([ad_title, "Ønskes kjøpt"])
+                ws_onskeskjopt.append([ad_title, product_brand, product_type, "Ønskes kjøpt"])
             else:
-                ws_gisbort.append([ad_title, "Gis bort"])
+                ws_gisbort.append([ad_title, product_brand, product_type, "Gis bort"])
 
             count_ads_on_site += 1
 
@@ -146,11 +163,6 @@ def scrape(data):
             number_of_ads_scraped += count_ads_on_site
             print(f"Page {page_number} of category {category_title} is done")
             page_number += 1
-            funk(page_number)
-
-    # running the program
-    funk(1)
-    wb.save(category_title + ".xlsx")
 
 
 while True:
@@ -161,7 +173,7 @@ while True:
     number_of_ads_to_scrap = input("number of ads: ")
 
     # making dictionary
-    data = {"category_link": category_link, "category_description": description, "number_of_ads": number_of_ads_to_scrap}
+    data = {"category_link": category_link, "category_description": description,
+            "number_of_ads": number_of_ads_to_scrap}
 
     scrape(data)
-
