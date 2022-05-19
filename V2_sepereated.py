@@ -100,4 +100,4 @@ funk('https://www.finn.no/bap/forsale/search.html?abTestKey=suggestions&sort=REL
 end_time = datetime.now()
 print(tabulate(table))
 print(end_time - start_time)
-wb.save("test.xlsx")
+wb.save("seperated.xlsx")

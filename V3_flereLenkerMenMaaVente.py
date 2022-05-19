@@ -1,4 +1,4 @@
-# VERSION 3: Flere lenker
+# VERSION 3: Flere lenker, men må vente på at første lenke er ferdig med å kjøre
 
 from datetime import datetime  # for å regne tiden til programmet
 from tabulate import tabulate  # for å lage tabell i python

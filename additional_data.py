@@ -8,11 +8,15 @@ import requests  # for å gjøre request (html-request)
 from openpyxl import Workbook, load_workbook
 
 
+
+number_of_ads_scraped = 0
+
 def scrape(data):
     # variables
     category_title = data.get("category_description")
     category_link = data.get("category_link")
     number_of_ads_to_scrap = int(data.get("number_of_ads"))
+    global number_of_ads_scraped
     number_of_ads_scraped = 0
 
     # defining a work excel book
@@ -30,11 +34,9 @@ def scrape(data):
     ws_gibud = wb["Gi bud"]
 
     # start of scraper algorithme
-    page_number = 1
-    while True:
+    def funk(page_number):
         if number_of_ads_scraped >= number_of_ads_to_scrap:
             print(f"Total ads from category: {category_title} collected is {number_of_ads_scraped}")
-            wb.save(category_title + ".xlsx")
             return
 
         link = category_link + "&page=" + str(page_number)
@@ -62,6 +64,14 @@ def scrape(data):
             ad_payment_type = (section.find('div', class_="u-t4")).text
             ad_price = section.find('div', class_="u-t1")
 
+
+            # finding additional data about the ad
+            section_additional_info = soup.find('table', _class="u-width-auto u-mt16")
+
+            ad_brand = (section_additional_info.find('td', _class="u-pl16"))
+            ad_type = (section_additional_info.find('td', _class=""))
+
+
             # ad_title = ad_title.text
             # sorting based on payment_type
             if ad_payment_type == "Til salgs":
@@ -81,6 +91,11 @@ def scrape(data):
             number_of_ads_scraped += count_ads_on_site
             print(f"Page {page_number} of category {category_title} is done")
             page_number += 1
+            funk(page_number)
+
+    # running the program
+    funk(1)
+    wb.save(category_title + ".xlsx")
 
 
 while True:
