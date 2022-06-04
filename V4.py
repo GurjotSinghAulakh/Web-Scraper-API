@@ -1,21 +1,24 @@
 # VERSION 4:
 # scraped brand and type of the products
 
+# TODO : library tabulate and datetime will be deleted.
+
 from datetime import datetime  # to calculate the time of the program
 from tabulate import tabulate  # to create table in python
 from bs4 import BeautifulSoup  # to make the html code compact
 import requests  # to make request (html-request)
+from openpyxl import Workbook, load_workbook  # To create excel sheets
 
-from openpyxl import Workbook, load_workbook
-
-all_brands_array = ["candy", "samsung", "lg", "whirlpool", "aeg", "husqvarna", "electrolux", "kenwood"]  # need to add more brands
+# TODO : skal slettes her i fra og vil bli importert i andre scripts med bestemt kategori.
+all_brands_array = ["candy", "samsung", "lg", "whirlpool", "aeg", "husqvarna", "electrolux",
+                    "kenwood"]  # need to add more brands
 all_type_array = ["kombiskap", "kjøleskap", "fryser"]  # need to add more types
 
-number_of_ads_scraped = 0
+# number_of_ads_scraped = 0  # A variable which counts the number of ads
 
 
 # NB: we find and use the only first brand_name, in future maybe we scrape even more...
-def scrape_brand(div_element):
+def scrape_brand_from_add_description(div_element):
     if div_element is None:
         return "EMPTY"
     else:
@@ -28,7 +31,7 @@ def scrape_brand(div_element):
 
 
 # NB: we find and use the only first type name, in future maybe we scrape even more...
-def scrape_type(div_element):
+def scrape_type_from_add_description(div_element):
     if div_element is None:
         return "EMPTY"
     else:
@@ -61,7 +64,7 @@ def scrape(data):
     ws_tilsalgs = wb["Til salgs"]
     ws_gibud = wb["Gi bud"]
 
-    # start of scraper algorithme
+    # start of scraper algorithm
     page_number = 1
     while True:
         if number_of_ads_scraped >= number_of_ads_to_scrap:
@@ -105,7 +108,7 @@ def scrape(data):
             table_additional_info_html_code = soup.find('table', class_="u-width-auto u-mt16")
             ad_info_text_html_code = soup.find('div', class_="preserve-linebreaks")
 
-            # TO-DO LIST:
+            # TODO LIST:
             # must check if it is not empty
 
             # finding product brand and updating
@@ -138,12 +141,12 @@ def scrape(data):
                             found_type = True
 
                     if found_brand is False:
-                        product_brand = scrape_brand(ad_info_text_html_code)
+                        product_brand = scrape_brand_from_add_description(ad_info_text_html_code)
                     if found_type is False:
-                        product_type = scrape_type(ad_info_text_html_code)
+                        product_type = scrape_type_from_add_description(ad_info_text_html_code)
                 else:
-                    product_type = scrape_type(ad_info_text_html_code)
-                    product_brand = scrape_brand(ad_info_text_html_code)
+                    product_type = scrape_type_from_add_description(ad_info_text_html_code)
+                    product_brand = scrape_brand_from_add_description(ad_info_text_html_code)
 
             # Adding information to the sheets
             if ad_payment_type == "Til salgs":
