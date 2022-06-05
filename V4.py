@@ -11,8 +11,8 @@ from openpyxl import Workbook, load_workbook  # To create excel sheets
 
 # TODO : skal slettes her i fra og vil bli importert i andre scripts med bestemt kategori.
 all_brands_array = ["candy", "samsung", "lg", "whirlpool", "aeg", "husqvarna", "electrolux",
-                    "kenwood"]  # need to add more brands
-all_type_array = ["kombiskap", "kjøleskap", "fryser"]  # need to add more types
+                    "kenwood"]                          # need to add more brands
+all_type_array = ["kombiskap", "kjøleskap", "fryser"]   # need to add more types
 
 # number_of_ads_scraped = 0  # A variable which counts the number of ads
 
