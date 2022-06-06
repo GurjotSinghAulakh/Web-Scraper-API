@@ -10,8 +10,9 @@ from openpyxl import Workbook, load_workbook  # To create excel sheets
 
 # TODO: legge til resten av data
 # Creating brand arrays:
-fridge_brand = ["candy", "samsung", "lg", "whirlpool", "aeg",
+fridge_brand = ["bosch", "gram", "miele", "siemens", "candy", "samsung", "lg", "whirlpool", "aeg",
                     "husqvarna", "electrolux", "kenwood"]
+
 firdge_type = ["kombiskap", "kjøleskap", "fryser"]
 
 
