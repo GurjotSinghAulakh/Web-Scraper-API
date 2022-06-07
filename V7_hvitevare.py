@@ -2,12 +2,12 @@
     In this version we run the category "Hvitevarer"
     and all undercategories. They will all be saved on the file Hvitevarer.xlsx
 '''
-import datetime
+import threading
+from datetime import date
 
 import requests  # to make request (html-request)
 from bs4 import BeautifulSoup  # to make the html code compact
 from openpyxl import Workbook  # To create excel sheets
-import threading
 
 # TODO: legge til resten av data
 # Creating brand arrays:
@@ -56,13 +56,13 @@ appliances_dictionary = [
         "category": "mikrobølgeovner",
         "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.77&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type" : [None]
+        "type": [None]
     },
     {
         "category": "oppvaskmaskiner",
         "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.78&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type" : [None]
+        "type": [None]
     },
     {
         "category": "platetopper",
@@ -74,7 +74,7 @@ appliances_dictionary = [
         "category": "tørketromler",
         "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.80&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type" : [None]
+        "type": [None]
     },
     {
         "category": "vaskemaskiner",
@@ -86,16 +86,16 @@ appliances_dictionary = [
         "category": "ventilatorer",
         "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.76&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type" : [None]
+        "type": [None]
     }
 ]
 
 
 def ask():
-    #category_to_be_scraped = input("skriv inn kategori: ").lower()
-    # TODO: after solving the problem for max ads to be scraped, we will add this functionality
-    #number_of_ads = input("Hvor mange annonser ønsker du å scarpe? ")
 
+    # TODO: after solving the problem for max ads to be scraped, we will add this functionality
+    # category_to_be_scraped = input("skriv inn kategori: ").lower()
+    # number_of_ads = input("Hvor mange annonser ønsker du å scarpe? ")
     # for dictionary_element in appliances_dictionary:
     #     if category_to_be_scraped in dictionary_element["category"]:
     #         category = category_to_be_scraped
@@ -104,7 +104,7 @@ def ask():
     #         type = dictionary_element["type"]
     #
     #         # test_threading = threading.Thread(target=scrape, args=(category, link, brand, type, number_of_ads))
-    #         scrape(category, link, brand, type, number_of_ads)
+    #         # scrape(category, link, brand, type, number_of_ads)
     #         # test_threading.start()
     #         break
 
@@ -113,7 +113,7 @@ def ask():
         link = dictionary_element["link"]
         brand = dictionary_element["brand"]
         type = dictionary_element["type"]
-        number_of_ads = 9999
+        number_of_ads = 1655
 
         test_threading = threading.Thread(target=scrape, args=(category, link, brand, type, number_of_ads))
         # scrape(category, link, brand, type, number_of_ads)
@@ -130,12 +130,12 @@ def start():
         if count == 0:
             ask()
             count += 1
-        # else:
-        #     countinue_to_scrape = input("fortsette ? (y/n) ")
-        #     if countinue_to_scrape.strip().lower() == "n":
-        #         break
-        #     ask()
-        #     count += 1
+        else:
+            countinue_to_scrape = input("fortsette ? (y/n) ")
+            if countinue_to_scrape.strip().lower() == "n":
+                break
+            ask()
+            count += 1
 
 
 # NB: we find and use the only first brand_name, in future maybe we scrape even more...
@@ -166,7 +166,7 @@ def scrape_type_from_add_description(div_element, type_array):
 wb = Workbook()
 wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
-ws.append(["Product title", "Product brand", "Under category", "Under-under category", "Price", "Post number", "Link"])
+ws.append(["Product title", "Product brand", "Under category", "Under-under category", "Price", "Post number"])
 
 def scrape(category_title, category_link, brand_array, type_array, number_of_ads_to_scrap):
     # variables
@@ -184,7 +184,9 @@ def scrape(category_title, category_link, brand_array, type_array, number_of_ads
     while True:
         if number_of_ads_scraped >= number_of_ads_to_scrap:
             print(f"Total ads from category: {category_title} collected is {number_of_ads_scraped}")
-            wb.save("all_threads.xlsx")
+            today = date.today()
+            todays_date = str(today) + ".xlsx"
+            wb.save(todays_date)
             return
 
         page_link = category_link + "&page=" + str(page_number)
@@ -192,13 +194,21 @@ def scrape(category_title, category_link, brand_array, type_array, number_of_ads
         soup = BeautifulSoup(page_html_code, 'lxml')  # making the html-code compact
 
         # checking if we have reached the end of ads:
-        last_page = soup.find('div', class_="u-pa16")
-        if last_page is not None:
-            print(f"All ads for the category {category_title} has been scraped, total was {number_of_ads_scraped}")
-            return
+        # ingen_treff_panel = soup.find('div', class_="panel")
+        # if ingen_treff_panel is not None:
+        #     ingen_treff_h2 = ingen_treff_panel.find('h2', class_="u-t3 u-pa16 u-text-center")
+        #     print(ingen_treff_h2)
+
+        # ingen_treff_panel = soup.find('div', class_="u-hide-lt768")
+        # ingen_treff_a_element = ingen_treff_panel.find('a', class_="pagination__page button button--pill")
+        # print(ingen_treff_a_element.text)
 
 
         all_ads_on_site = soup.find_all('article', class_="ads__unit")  # finding all ads in the category
+
+        if len(all_ads_on_site) <= 1:
+            print(f"END: Total ads from category: {category_title} collected is {number_of_ads_scraped}")
+            return
 
         for ad in all_ads_on_site:
             ad_link_code = ad.find('a', href=True)
@@ -227,7 +237,7 @@ def scrape(category_title, category_link, brand_array, type_array, number_of_ads
 
             comma = ","
             if ad_location.text is not None and comma in ad_location.text:
-                postnr_og_postadreese = ad_location.text.split(",")[1]
+                postnr_og_postadreese = ad_location.text.split(",")[-1]
                 ad_postnr = postnr_og_postadreese.strip().split(" ")[0]
             else:
                 ad_postnr = ad_location.text.strip().split(" ")[0]
@@ -284,7 +294,7 @@ def scrape(category_title, category_link, brand_array, type_array, number_of_ads
                     pass
                 else:
                     price = ad_price.text.replace(" ", "").split("kr")[0]
-                    ws.append([ad_title, product_brand, category_title, product_type, price, ad_postnr, ad_link])
+                    ws.append([ad_title, product_brand, category_title, product_type, price, ad_postnr])
 
                 number_of_ads_scraped += 1
 
