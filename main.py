@@ -19,12 +19,26 @@
 #
 # print("DONE")
 
-array = ["tang", "hsjdahs", "ooo"]
-array.insert(0, "hei")
-array.insert(0,"ahsjkdhakjsdhkjashdjkashkjhjdsa")
-while len(array) > 4:
-    array.pop()
+# array = ["tang", "hsjdahs", "ooo"]
+# array.insert(0, "hei")
+# array.insert(0,"ahsjkdhakjsdhkjashdjkashkjhjdsa")
+# while len(array) > 4:
+#     array.pop()
+#
+# if "hei" in array:
+#     print(array)
+#     print("dublikat")
+# from datetime import date
+#
+# today = date.today()
+# name = str(today) + ".xlsx"
+# file_name = name
+#
+# print(file_name)
+from datetime import datetime, timedelta
 
-if "hei" in array:
-    print(array)
-    print("dublikat")
+n = 5
+current_time = datetime.now()
+future_time = current_time + timedelta(minutes=n)
+
+print(future_time)
