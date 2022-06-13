@@ -4,9 +4,13 @@
     They will all be saved on the file (CurrentDate).xlsx
 '''
 
+import threading
 import time
-from datetime import datetime  # to measure the speed of the the algorithm
-from datetime import date
+from datetime import datetime, date   # to measure the speed of the the algorithm
+from threading import Timer
+
+import logging
+logging.basicConfig(level=logging.INFO, filename='backuplog.log')
 
 import requests  # to make request (html-request)
 from bs4 import BeautifulSoup  # to make the html code compact
@@ -108,25 +112,35 @@ appliances_dictionary = [
     }
 ]
 
-# count_ingen_pris = 0
 all_finn_code_array = []
 
-# count_ikke_til_salgs = 0
-# count_til_salgs = 0
+count_no_price = 0
+count_no_til_salgs = 0
+count_til_salgs = 0
 
 
 def start():
+    save_file_thread = threading.Thread(backup_file())
+    save_file_thread.start()
+    save_file_thread = threading.Thread(time_to_save_file())
+    save_file_thread.start()
+
     round_counter = 1
-    # n = 2
-    # current_time = datetime.now()
-    # future_time = current_time + timedelta(minutes=n)
+
     while True:
         for dictionary_element in appliances_dictionary:
             scrape(dictionary_element, all_finn_code_array)
             time.sleep(3)
         print(f"Round {round_counter} is finished")
-        print(len(all_finn_code_array))
 
+        # Counter : Products for sale
+        print(f"[COUNTER]: Products for sale: {count_til_salgs}")
+
+        # Counter : Products for sale with no price
+        print(f"[COUNTER]: Products for sale with no price: {count_no_price}")
+
+
+        print(f"[COUNTER]: Products not for sale (gis bort/ønskes kjøpt):  {count_til_salgs}")
         round_counter += 1
 
 
@@ -164,6 +178,47 @@ ws = wb["Hvitevarer"]
 ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Postnummer"])
 
 
+# Time function: that will start a thread every day at 00:00 at midnight
+def time_to_save_file():
+    # 24-hours : (seconds: 86_400, function)
+    twentyfour_hours = Timer(10, save_file_everyday)
+    twentyfour_hours.start()
+
+
+# Time function: that will start a thread every 2nd hour
+def backup_file():
+    # 2-hours : (seconds: 7200, function)
+    two_hours = Timer(5, save_every_two_hours)
+    two_hours.start()
+
+
+# A function that will save a excel file with scrapped data, at 00:00 O´olock
+def save_file_everyday():
+    today = date.today()
+    name = str(today) + ".xlsx"
+    file_name = name
+
+    # TODO: We have to change "Absolutt Path", before we will run the algorithm
+
+    wb.save("/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/Scrapped Data/" + file_name)
+
+    print("hello world")
+    time_to_save_file()
+
+
+# A function that will save a excel file with scrapped data, every 2nd hour
+def save_every_two_hours():
+    today = date.today()
+    name = "backup_" + str(today) + ".xlsx"
+    file_name = name
+
+    # TODO: We have to change "Absolutt Path", before we will run the algorithm
+
+    wb.save("/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/Backup Data/" + file_name)
+
+    print("Bye world")
+    backup_file()
+
 # this function scrapes date from each under-category
 def scrape(under_category_object, all_finn_code_array):
     under_category_title = under_category_object["category"]
@@ -171,9 +226,9 @@ def scrape(under_category_object, all_finn_code_array):
     brand_array = under_category_object["brand"]
     type_array = under_category_object["type"]
 
-    global count_ikke_til_salgs
+    global count_no_til_salgs, ad_finn_code_span, ad_html_code, page_html_code, ad_title, ad_payment_type, ad_price, ad_location
     global count_til_salgs
-    global count_ingen_pris
+    global count_no_price
 
     print(f"[LIVE]: Now scraping {under_category_title}")
 
@@ -181,9 +236,12 @@ def scrape(under_category_object, all_finn_code_array):
     ws = wb["Hvitevarer"]
 
     page_link = category_link + "&page=1"  # creating page link for each page
-    page_html_code = requests.get(page_link).text  # extracting the html code from website
-    soup = BeautifulSoup(page_html_code, 'lxml')  # making the html-code compact
+    try:
+        page_html_code = requests.get(page_link).text  # extracting the html code from website
+    except IOError:
+        logging.critical(f"Page 1 of {under_category_title} does not exist")
 
+    soup = BeautifulSoup(page_html_code, 'lxml')  # making the html-code compact
     all_ads_on_site = soup.find_all('article', class_="ads__unit")  # finding all ads in the category
 
     # entring each ad...
@@ -196,26 +254,40 @@ def scrape(under_category_object, all_finn_code_array):
         if sponsored_ad is not None:
             ad_link = "https://www.finn.no" + ad_link
 
-        ad_html_code = requests.get(f'{ad_link}').text  # fetching the html code for each ad
+        try:
+            ad_html_code = requests.get(f'{ad_link}').text  # fetching the html code for each ad
+        except IOError:
+            logging.critical(f"Ad link does not exist {ad_link}")
+
         soup = BeautifulSoup(ad_html_code, 'lxml')  # making the html code compact
 
         # extracting the finn code for each ad:
-        ad_finn_div_table = soup.find('div', class_="panel u-text-left")
-        ad_finn_code_span = ad_finn_div_table.find('span', class_="u-select-all")
+        try:
+            ad_finn_div_table = soup.find('div', class_="panel u-text-left")
+            if ad_finn_div_table is not None:
+                ad_finn_code_span = ad_finn_div_table.find('span', class_="u-select-all")
+        except IOError:
+            logging.critical(f"Div table for ad: {ad_link} does not exist")
+
+        # ad_finn_code is "finnkode"
         ad_finn_code = ""
 
         if ad_finn_code_span is None:
-            print(f"This ad does not have finn code {ad_link}")
+            logging.info(f"This ad does not have finn code {ad_link}")
         else:
-            ad_finn_code = ad_finn_code_span.text
+            try:
+                ad_finn_code = ad_finn_code_span.text
+            except IOError:
+                logging.warning(f"This ad {ad_link} has finn_code_span but no text element")
 
+        # TODO: Go to next undercat. if rhere are no new ads 3x
         # checking for duplicate:
         if ad_finn_code in all_finn_code_array:
-            print(f"[SKIP]: no new ad in category {under_category_title}")
+            logging.info(f"[SKIP]: no new ad in category {under_category_title}")
             continue
         else:
             all_finn_code_array.insert(0, ad_finn_code)
-            print(f"[NEW] : new ad is found... {ad_finn_code}, {ad_link}")
+            logging.info(f"[NEW] : New ad is found... {ad_finn_code}, {ad_link}")
             while len(all_finn_code_array) > 600:
                 all_finn_code_array.pop()
 
@@ -225,21 +297,30 @@ def scrape(under_category_object, all_finn_code_array):
 
         # handling None-pointer exception
         if section is None:
-            print(f"Denne annonsen har ikke section element : {ad_link}")
+            logging.warning(f"This ad does not have a section element : {ad_link}")
+        else:
+            try:
+                ad_title = (section.find('h1', class_="u-t2 u-mt16")).text
+                ad_payment_type = (section.find('div', class_="u-t4")).text
+                ad_price = section.find('div', class_="u-t1")
+            except IOError:
+                logging.critical("Error trying to access text element of section_element")
 
-        ad_title = (section.find('h1', class_="u-t2 u-mt16")).text
-        ad_payment_type = (section.find('div', class_="u-t4")).text
-        ad_price = section.find('div', class_="u-t1")
 
         # finding the postnr for the ads
         ad_location_div = soup.find('div', class_="panel u-mt32")
-        ad_location = ad_location_div.find('h3')
+
+        if ad_location_div is None:
+            logging.warning(f"This ad does not have a location element : {ad_link}")
+        else:
+            ad_location = ad_location_div.find('h3')
 
         # There are two types of address used in finn.no
         # 1. 0231 Oslo
         # 2. Gule gata 4, 3487 Kongsberg
         # We will handle both here, and extract the post number
         comma = ","
+
         if ad_location.text is not None and comma in ad_location.text:
             postnr_og_postadreese = ad_location.text.split(",")[-1]
             ad_postnr = postnr_og_postadreese.strip().split(" ")[0]
@@ -250,6 +331,10 @@ def scrape(under_category_object, all_finn_code_array):
         table_additional_info_html_code = soup.find('table', class_="u-width-auto u-mt16")
         ad_info_text_html_code = soup.find('div', class_="preserve-linebreaks")
 
+        if table_additional_info_html_code is None or ad_info_text_html_code is None:
+            logging.warning(f"This ad does not have a description table element or addtional information from div element: {ad_link}")
+
+        #---------------------------------------------- Mangler try/except ----------------------------------------#
         # finding product brand and type (under-under category)
         product_brand = ""
         product_type = ""
@@ -293,7 +378,7 @@ def scrape(under_category_object, all_finn_code_array):
         if ad_payment_type.lower() == "til salgs":
             # handling None-pointer exception
             if ad_price is None:
-                count_ingen_pris += 1
+                count_no_price += 1
                 pass
 
             # Otherwise, splitting the price "kr" and adding it to the sheet
@@ -302,12 +387,7 @@ def scrape(under_category_object, all_finn_code_array):
                 price = ad_price.text.replace(" ", "").split("kr")[0]
                 ws.append([ad_title, under_category_title, product_type, price, product_brand, ad_postnr])
         else:
-            count_ikke_til_salgs += 1
-
-    today = date.today()
-    name = str(today) + ".xlsx"
-    file_name = name
-    wb.save(file_name)
+            count_no_til_salgs += 1
 
 
 # Starting the algorithm (Scrapping)
