@@ -1,7 +1,7 @@
 '''
     In this version we will scrape the category "Hvitevarer",
     and all its under categories, with threading enabled.
-    They will all be saved on the file Hvitevarer.xlsx
+    They will all be saved on the file (CurrentDate).xlsx
 '''
 
 import time
@@ -111,8 +111,6 @@ appliances_dictionary = [
 # count_ingen_pris = 0
 all_finn_code_array = []
 
-
-# common_array = []
 # count_ikke_til_salgs = 0
 # count_til_salgs = 0
 
@@ -127,17 +125,9 @@ def start():
             scrape(dictionary_element, all_finn_code_array)
             time.sleep(3)
         print(f"Round {round_counter} is finished")
-        # print(f"Antall ads som ikke hadde pris {count_ingen_pris}")
         print(len(all_finn_code_array))
 
-        # print(f"DEtte er antall varer som er til salgs: {count_til_salgs}")
-        # print(f"Dette er antall varer som ikke er til salgs: {count_ikke_til_salgs}")
-        # print(f"Detter er antall varer som er til salgs men som ikke har en pris {count_ingen_pris}")
-
         round_counter += 1
-
-        # if future_time is (current_time + timedelta(minutes=n)):
-        #     break
 
 
 def scrape_brand_from_add_description(div_element, brand_array):
@@ -180,9 +170,10 @@ def scrape(under_category_object, all_finn_code_array):
     category_link = under_category_object["link"]
     brand_array = under_category_object["brand"]
     type_array = under_category_object["type"]
-    # global count_ikke_til_salgs
-    # global count_til_salgs
-    # global count_ingen_pris
+
+    global count_ikke_til_salgs
+    global count_til_salgs
+    global count_ingen_pris
 
     print(f"[LIVE]: Now scraping {under_category_title}")
 
@@ -222,7 +213,6 @@ def scrape(under_category_object, all_finn_code_array):
         if ad_finn_code in all_finn_code_array:
             print(f"[SKIP]: no new ad in category {under_category_title}")
             continue
-            # Kankje vi skal heller bruke return
         else:
             all_finn_code_array.insert(0, ad_finn_code)
             print(f"[NEW] : new ad is found... {ad_finn_code}, {ad_link}")
@@ -303,20 +293,16 @@ def scrape(under_category_object, all_finn_code_array):
         if ad_payment_type.lower() == "til salgs":
             # handling None-pointer exception
             if ad_price is None:
-                # count_ingen_pris += 1
+                count_ingen_pris += 1
                 pass
 
             # Otherwise, splitting the price "kr" and adding it to the sheet
             else:
-                # count_til_salgs += 1
+                count_til_salgs += 1
                 price = ad_price.text.replace(" ", "").split("kr")[0]
                 ws.append([ad_title, under_category_title, product_type, price, product_brand, ad_postnr])
         else:
-            # count_ikke_til_salgs += 1
-            print("aadjkløasjdøkajsdølkjaslkødjalkøsjdløakjsdlkøajslkdøja")
-
-    common_finn_code_array = all_finn_code_array.copy()
-    print(common_finn_code_array)
+            count_ikke_til_salgs += 1
 
     today = date.today()
     name = str(today) + ".xlsx"
