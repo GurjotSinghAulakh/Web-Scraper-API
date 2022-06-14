@@ -115,13 +115,16 @@ appliances_dictionary = [
 all_finn_code_array = []
 
 count_no_price = 0
-count_no_til_salgs = 0
-count_til_salgs = 0
+count_no_to_sale = 0
+count_to_sale = 0
 
 
 def start():
+    # Threads: creating the backup file
     save_file_thread = threading.Thread(backup_file())
     save_file_thread.start()
+
+    # Threads: creating the data file
     save_file_thread = threading.Thread(time_to_save_file())
     save_file_thread.start()
 
@@ -131,16 +134,18 @@ def start():
         for dictionary_element in appliances_dictionary:
             scrape(dictionary_element, all_finn_code_array)
             time.sleep(3)
-        print(f"Round {round_counter} is finished")
+
+        # Round counter
+        logging.info(f"Round {round_counter} is finished")
 
         # Counter : Products for sale
-        print(f"[COUNTER]: Products for sale: {count_til_salgs}")
+        logging.info(f"[COUNTER]: Products for sale: {count_to_sale}")
 
         # Counter : Products for sale with no price
-        print(f"[COUNTER]: Products for sale with no price: {count_no_price}")
+        logging.info(f"[COUNTER]: Products for sale with no price: {count_no_price}")
 
-
-        print(f"[COUNTER]: Products not for sale (gis bort/ønskes kjøpt):  {count_til_salgs}")
+        # Counter : Products not for sale
+        logging.info(f"[COUNTER]: Products not for sale (gis bort/ønskes kjøpt):  {count_to_sale}")
         round_counter += 1
 
 
@@ -226,9 +231,10 @@ def scrape(under_category_object, all_finn_code_array):
     brand_array = under_category_object["brand"]
     type_array = under_category_object["type"]
 
-    global count_no_til_salgs, ad_finn_code_span, ad_html_code, page_html_code, ad_title, ad_payment_type, ad_price, ad_location
-    global count_til_salgs
+    global count_no_to_sale, ad_finn_code_span, ad_html_code, page_html_code, ad_title, ad_payment_type, ad_price, ad_location
+    global count_to_sale
     global count_no_price
+    counter_old_ad = 1
 
     print(f"[LIVE]: Now scraping {under_category_title}")
 
@@ -284,6 +290,10 @@ def scrape(under_category_object, all_finn_code_array):
         # checking for duplicate:
         if ad_finn_code in all_finn_code_array:
             logging.info(f"[SKIP]: no new ad in category {under_category_title}")
+            if counter_old_ad == 5:
+                print("Vi har sett at vi har fått 5 gamle reklamer på rad!")
+                break
+            counter_old_ad += 1
             continue
         else:
             all_finn_code_array.insert(0, ad_finn_code)
@@ -329,10 +339,7 @@ def scrape(under_category_object, all_finn_code_array):
 
         # finding additional data about the ad
         table_additional_info_html_code = soup.find('table', class_="u-width-auto u-mt16")
-        ad_info_text_html_code = soup.find('div', class_="preserve-linebreaks")
-
-        if table_additional_info_html_code is None or ad_info_text_html_code is None:
-            logging.warning(f"This ad does not have a description table element or addtional information from div element: {ad_link}")
+        ad_description = soup.find('div', class_="preserve-linebreaks")
 
         #---------------------------------------------- Mangler try/except ----------------------------------------#
         # finding product brand and type (under-under category)
@@ -367,12 +374,26 @@ def scrape(under_category_object, all_finn_code_array):
 
                 # 3. method: finding the brand and type for the product from description:
                 if found_brand is False:
-                    product_brand = scrape_brand_from_add_description(ad_info_text_html_code, brand_array)
+                    if ad_description is not None:
+                        product_brand = scrape_brand_from_add_description(ad_description, brand_array)
+
+                    else:
+                        logging.warning(f"This ad does not have a description element: {ad_link}")
+
                 if found_type is False:
-                    product_type = scrape_type_from_add_description(ad_info_text_html_code, type_array)
+                    if ad_description is not None:
+                        product_type = scrape_type_from_add_description(ad_description, type_array)
+
+                    else:
+                        logging.warning(f"This ad does not have a description element: {ad_link}")
+
+            # If table is empty, we go straight to scrapping the description
+            elif ad_description is not None :
+                product_type = scrape_type_from_add_description(ad_description, type_array)
+                product_brand = scrape_brand_from_add_description(ad_description, brand_array)
+
             else:
-                product_type = scrape_type_from_add_description(ad_info_text_html_code, type_array)
-                product_brand = scrape_brand_from_add_description(ad_info_text_html_code, brand_array)
+                logging.critical(f"This ad does not have a data table and description element: {ad_link}")
 
         # Scraping only "Til Salgs ads" from finn.no
         if ad_payment_type.lower() == "til salgs":
@@ -383,11 +404,11 @@ def scrape(under_category_object, all_finn_code_array):
 
             # Otherwise, splitting the price "kr" and adding it to the sheet
             else:
-                count_til_salgs += 1
+                count_to_sale += 1
                 price = ad_price.text.replace(" ", "").split("kr")[0]
                 ws.append([ad_title, under_category_title, product_type, price, product_brand, ad_postnr])
         else:
-            count_no_til_salgs += 1
+            count_no_to_sale += 1
 
 
 # Starting the algorithm (Scrapping)

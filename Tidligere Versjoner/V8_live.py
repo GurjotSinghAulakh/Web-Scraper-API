@@ -228,7 +228,7 @@ def scrape(under_category_object):
 
             # finding additional data about the ad
             table_additional_info_html_code = soup.find('table', class_="u-width-auto u-mt16")
-            ad_info_text_html_code = soup.find('div', class_="preserve-linebreaks")
+            ad_description = soup.find('div', class_="preserve-linebreaks")
 
             # finding product brand and type (under-under category)
             product_brand = ""
@@ -262,12 +262,12 @@ def scrape(under_category_object):
 
                     # 3. method: finding the brand and type for the product from description:
                     if found_brand is False:
-                        product_brand = scrape_brand_from_add_description(ad_info_text_html_code, brand_array)
+                        product_brand = scrape_brand_from_add_description(ad_description, brand_array)
                     if found_type is False:
-                        product_type = scrape_type_from_add_description(ad_info_text_html_code, type_array)
+                        product_type = scrape_type_from_add_description(ad_description, type_array)
                 else:
-                    product_type = scrape_type_from_add_description(ad_info_text_html_code, type_array)
-                    product_brand = scrape_brand_from_add_description(ad_info_text_html_code, brand_array)
+                    product_type = scrape_type_from_add_description(ad_description, type_array)
+                    product_brand = scrape_brand_from_add_description(ad_description, brand_array)
 
             # Scraping only "Til Salgs ads" from finn.no
             if ad_payment_type.lower() == "til salgs":
