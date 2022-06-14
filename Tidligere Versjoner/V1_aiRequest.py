@@ -35,7 +35,6 @@ for ad in all_ads_on_site:
 
     # each ad inn "finn.no" has a section with class_name "panel u-mb16"
     sections = soup.find_all('section', class_="panel u-mb16")
-    print(sections)
 
     # collecting information by using class_names
     for information in sections:
