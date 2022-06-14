@@ -2,6 +2,8 @@
     In this version we will scrape the category "Hvitevarer",
     and all its under categories, with threading enabled.
     They will all be saved on the file Hvitevarer.xlsx
+    BUT here we have also the possibility to have controll over
+    how many ads we want to scrape
 '''
 
 import threading  # enables threading, making the program run faster
@@ -173,8 +175,6 @@ def scrape(category_title, category_link, brand_array, type_array, number_of_ads
         # Ending the script for "this" undercategory, if there are no more ads to be scraped
         if len(all_ads_on_site) <= 1:
             print(f"[END_OF_ADS]: Total ads from category: {category_title} collected is {number_of_ads_scraped}")
-            # today = date.today()
-            # todays_date = str(today) + ".xlsx"
             wb.save(todays_date)
             return
 
@@ -182,8 +182,6 @@ def scrape(category_title, category_link, brand_array, type_array, number_of_ads
         # and saving the data to the excel file
         if number_of_ads_scraped >= number_of_ads_to_scrap:
             print(f"[FINISH] Total ads from category: {category_title} collected is {number_of_ads_scraped}")
-            # today = date.today()
-            # todays_date = str(today) + ".xlsx"
             wb.save(todays_date)
             return
 
