@@ -144,11 +144,11 @@ def scrape_type_from_add_description(div_element, type_array):
 # This part of the code is "hardcoded" for the category "hvitevarer"
 # TODO: make this part of the code dynamic
 
-filename = "Hvitevarer.xlsx"
+filename = "Midlertidig.xlsx"
 wb = Workbook()
 wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
-ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Postnummer"])
+ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn kode"])
 
 count_no_price = 0
 count_no_to_sale = 0
@@ -205,8 +205,26 @@ def scrape(under_category_object):
             except IOError:
                 print(f"Ad link does not exist {ad_link}")
 
-
             soup = BeautifulSoup(ad_html_code, 'lxml')  # making the html code compact
+
+            # extracting the finn code for each ad:
+            try:
+                ad_finn_div_table = soup.find('div', class_="panel u-text-left")
+                if ad_finn_div_table is not None:
+                    ad_finn_code_span = ad_finn_div_table.find('span', class_="u-select-all")
+            except IOError:
+                print(f"Div table for ad: {ad_link} does not exist")
+
+            # ad_finn_code is "finnkode"
+            ad_finn_code = ""
+
+            if ad_finn_code_span is None:
+                print(f"This ad does not have finn code {ad_link}")
+            else:
+                try:
+                    ad_finn_code = ad_finn_code_span.text
+                except IOError:
+                    print(f"This ad {ad_link} has finn_code_span but no text element")
 
             # each ad inn "finn.no" has a section with class_name "panel u-mb16"
             # section has information about ad-title, ad-payment-type and ad-price
@@ -311,7 +329,8 @@ def scrape(under_category_object):
                 else:
                     count_to_sale += 1
                     price = ad_price.text.replace(" ", "").split("kr")[0]
-                    ws.append([ad_title, under_category_title, product_type, price, product_brand, ad_postnr])
+                    ws.append(
+                        [ad_title, under_category_title, product_type, price, product_brand, ad_postnr, "", ad_finn_code])
             else:
                 count_no_to_sale += 1
 
@@ -320,7 +339,8 @@ def scrape(under_category_object):
         print(f"Page {page_number} of category {under_category_title} is done")
         page_number += 1
 
-        wb.save("/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/Scrapped Data Static/" + filename)
+        # Saving file for each page that is scraped
+        wb.save(filename)
 
 # Starting the algoritm (Scrapping)
 start()

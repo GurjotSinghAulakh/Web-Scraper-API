@@ -2,6 +2,8 @@
     In this version we will scrape the category "Hvitevarer",
     and all its under categories, with threading enabled.
     They will all be saved on the file (CurrentDate).xlsx
+    It will run live, and save both a backup file and a
+    big file where huge data will sit
 '''
 
 import threading
@@ -180,7 +182,7 @@ def scrape_type_from_add_description(div_element, type_array):
 wb = Workbook()
 wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
-ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Postnummer"])
+ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn Kode"])
 
 
 # Time function: that will start a thread every day at 00:00 at midnight
@@ -205,7 +207,7 @@ def save_file_everyday():
 
     # TODO: We have to change "Absolutt Path", before we will run the algorithm
 
-    wb.save("/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/Scrapped Data/" + file_name)
+    wb.save("./[LIVE] Scrapped Data/" + file_name)
 
     print("hello world")
     time_to_save_file()
@@ -219,7 +221,7 @@ def save_every_two_hours():
 
     # TODO: We have to change "Absolutt Path", before we will run the algorithm
 
-    wb.save("/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/Backup Data/" + file_name)
+    wb.save("./[LIVE] Backup data/" + file_name)
 
     print("Bye world")
     backup_file()
@@ -286,7 +288,7 @@ def scrape(under_category_object, all_finn_code_array):
             except IOError:
                 logging.warning(f"This ad {ad_link} has finn_code_span but no text element")
 
-        # TODO: Go to next undercat. if rhere are no new ads 3x
+        # TODO: Go to next undercat. if there are no new ads 3x
         # checking for duplicate:
         if ad_finn_code in all_finn_code_array:
             logging.info(f"[SKIP]: no new ad in category {under_category_title}")
@@ -406,7 +408,7 @@ def scrape(under_category_object, all_finn_code_array):
             else:
                 count_to_sale += 1
                 price = ad_price.text.replace(" ", "").split("kr")[0]
-                ws.append([ad_title, under_category_title, product_type, price, product_brand, ad_postnr])
+                ws.append([ad_title, under_category_title, product_type, price, product_brand, ad_postnr,"", ad_finn_code])
         else:
             count_no_to_sale += 1
 
