@@ -188,14 +188,14 @@ ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Po
 # Time function: that will start a thread every day at 00:00 at midnight
 def time_to_save_file():
     # 24-hours : (seconds: 86_400, function)
-    twentyfour_hours = Timer(10, save_file_everyday)
+    twentyfour_hours = Timer(3600, save_file_everyday)
     twentyfour_hours.start()
 
 
 # Time function: that will start a thread every 2nd hour
 def backup_file():
     # 2-hours : (seconds: 7200, function)
-    two_hours = Timer(5, save_every_two_hours)
+    two_hours = Timer(1800, save_every_two_hours)
     two_hours.start()
 
 
