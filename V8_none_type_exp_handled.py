@@ -334,7 +334,6 @@ def scrape(under_category_object):
             else:
                 count_no_to_sale += 1
 
-
         # Next-page
         print(f"Page {page_number} of category {under_category_title} is done")
         page_number += 1
