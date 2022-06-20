@@ -206,7 +206,7 @@ def scrape(under_category_object):
 
             soup = BeautifulSoup(ad_html_code, 'lxml')  # making the html code compact
 
-            # extracting the finn code for each ad:
+            # extracting the finn code for each ad using a div, which holds table:
             try:
                 ad_finn_div_table = soup.find('div', class_="panel u-text-left")
                 if ad_finn_div_table is not None:
