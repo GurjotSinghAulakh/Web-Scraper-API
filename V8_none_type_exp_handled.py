@@ -154,6 +154,9 @@ count_no_price = 0
 count_no_to_sale = 0
 count_to_sale = 0
 
+# used for checking for duplicate sponsored ads
+sponsored_ad_links_array = []
+
 
 # this function scrapes date from each under-category
 def scrape(under_category_object):
@@ -198,7 +201,9 @@ def scrape(under_category_object):
             # checking if there are any sponsored ads on this category/site
             sponsored_ad = ad.find('span', class_="status status--sponsored u-mb8")
             if sponsored_ad is not None:
-                ad_link = "https://www.finn.no" + ad_link
+                continue
+
+            # checking if the ads exists
             try:
                 ad_html_code = requests.get(f'{ad_link}').text  # fetching the html code for each ad
             except IOError:
