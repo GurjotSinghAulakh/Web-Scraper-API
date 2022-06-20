@@ -12,13 +12,16 @@ from datetime import datetime, date   # to measure the speed of the the algorith
 from threading import Timer
 
 import logging
-logging.basicConfig(level=logging.INFO, filename='backuplog.log')
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%d-%m-%Y %H:%M:%S',
+    filename='backuplog.log')
 
 import requests  # to make request (html-request)
 from bs4 import BeautifulSoup  # to make the html code compact
 from openpyxl import Workbook  # To create excel sheets
 
-start_time = datetime.now()
 
 # TODO: Add more categories, such as electronics
 
@@ -36,28 +39,28 @@ appliance_under_category = ["frysere", "innbyggingsovner", "kjøleskap", "komfyr
 appliances_dictionary = [
     {
         "category": "andre hvitevarer",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.305&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.305&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": appliance_under_category,
         "finnkode": []
     },
     {
         "category": "frysere",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.72&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.72&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["fryseboks", "fryseskap", "fryser"],
         "finnkode": []
     },
     {
         "category": "innbyggingsovner",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.74&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.74&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["stekeovn", "dampovn", "med platetopp"],  ## Sendere ta med platetopp, sjekk for mer data på finn
         "finnkode": []
     },
     {
         "category": "kjøleskap",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=suggestions&product_category=2.93.3907.292&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.292&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["kombiskap", "fryser", "side by side"],
         "finnkode": []
@@ -65,49 +68,49 @@ appliances_dictionary = [
     },
     {
         "category": "komfyrer",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.73&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.73&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["med keramisk", "gasskomfyr"],
         "finnkode": []
     },
     {
         "category": "mikrobølgeovner",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.77&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.77&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": [None],
         "finnkode": []
     },
     {
         "category": "oppvaskmaskiner",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.78&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.78&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": [None],
         "finnkode": []
     },
     {
         "category": "platetopper",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.75&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.75&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["induksjon", "keramisk"],
         "finnkode": []
     },
     {
         "category": "tørketromler",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.80&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.80&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": [None],
         "finnkode": []
     },
     {
         "category": "vaskemaskiner",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.79&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.79&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["tørketrommel"],
         "finnkode": []
     },
     {
         "category": "ventilatorer",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.76&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.76&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": [None],
         "finnkode": []
@@ -147,7 +150,7 @@ def start():
         logging.info(f"[COUNTER]: Products for sale with no price: {count_no_price}")
 
         # Counter : Products not for sale
-        logging.info(f"[COUNTER]: Products not for sale (gis bort/ønskes kjøpt):  {count_to_sale}")
+        logging.info(f"[COUNTER]: Products not for sale (gis bort/ønskes kjøpt):  {count_no_to_sale}")
         round_counter += 1
 
 
@@ -182,7 +185,7 @@ def scrape_type_from_add_description(div_element, type_array):
 wb = Workbook()
 wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
-ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn Kode"])
+ws.append(["Varenavn", "Kategori", "Under-kategori", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn Kode"])
 
 
 # Time function: that will start a thread every day at 00:00 at midnight
@@ -343,7 +346,6 @@ def scrape(under_category_object, all_finn_code_array):
         table_additional_info_html_code = soup.find('table', class_="u-width-auto u-mt16")
         ad_description = soup.find('div', class_="preserve-linebreaks")
 
-        #---------------------------------------------- Mangler try/except ----------------------------------------#
         # finding product brand and type (under-under category)
         product_brand = ""
         product_type = ""

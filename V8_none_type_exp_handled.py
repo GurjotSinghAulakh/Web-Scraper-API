@@ -3,13 +3,12 @@
     and all its under categories, with threading enabled.
     They will all be saved on the file Hvitevarer.xlsx
 '''
+from datetime import datetime
+import threading  # enables threading, making the program run faster
 
-import threading                # enables threading, making the program run faster
-
-import requests                 # to make request (html-request)
-from bs4 import BeautifulSoup   # to make the html code compact
-from openpyxl import Workbook   # To create excel sheets
-
+import requests  # to make request (html-request)
+from bs4 import BeautifulSoup  # to make the html code compact
+from openpyxl import Workbook  # To create excel sheets
 
 # Creating brand arrays:
 appliances_brand = ["samsung", "bosch", "miele", "whirlpool", "electrolux", "grundig", "siemens", "zanussi",
@@ -27,28 +26,28 @@ appliance_under_category = ["frysere", "innbyggingsovner", "kjøleskap", "komfyr
 appliances_dictionary = [
     {
         "category": "andre hvitevarer",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.305&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.305&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": appliance_under_category,
         "finnkode": []
     },
     {
         "category": "frysere",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.72&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.72&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["fryseboks", "fryseskap", "fryser"],
         "finnkode": []
     },
     {
         "category": "innbyggingsovner",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.74&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.74&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["stekeovn", "dampovn", "med platetopp"],  ## Sendere ta med platetopp, sjekk for mer data på finn
         "finnkode": []
     },
     {
         "category": "kjøleskap",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=suggestions&product_category=2.93.3907.292&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.292&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["kombiskap", "fryser", "side by side"],
         "finnkode": []
@@ -56,49 +55,49 @@ appliances_dictionary = [
     },
     {
         "category": "komfyrer",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.73&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.73&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["med keramisk", "gasskomfyr"],
         "finnkode": []
     },
     {
         "category": "mikrobølgeovner",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.77&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.77&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": [None],
         "finnkode": []
     },
     {
         "category": "oppvaskmaskiner",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.78&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.78&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": [None],
         "finnkode": []
     },
     {
         "category": "platetopper",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.75&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.75&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["induksjon", "keramisk"],
         "finnkode": []
     },
     {
         "category": "tørketromler",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.80&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.80&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": [None],
         "finnkode": []
     },
     {
         "category": "vaskemaskiner",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.79&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.79&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": ["tørketrommel"],
         "finnkode": []
     },
     {
         "category": "ventilatorer",
-        "link": "https://www.finn.no/bap/forsale/search.html?abTestKey=controlsuggestions&product_category=2.93.3907.76&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.76&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
         "type": [None],
         "finnkode": []
@@ -143,12 +142,13 @@ def scrape_type_from_add_description(div_element, type_array):
 
 # This part of the code is "hardcoded" for the category "hvitevarer"
 # TODO: make this part of the code dynamic
+now = datetime.now()
 
-filename = "Midlertidig.xlsx"
+filename = f"/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/[STATIC] Scrapped Data/Hvitevarer--{now}.xlsx"
 wb = Workbook()
 wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
-ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn kode"])
+ws.append(["Varenavn", "Kategori", "Under-Kategori", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn kode"])
 
 count_no_price = 0
 count_no_to_sale = 0
@@ -189,7 +189,6 @@ def scrape(under_category_object):
             print(f"[END_OF_ADS]: Total ads from category: {under_category_title} collected is {number_of_ads_scraped}")
             wb.save(filename)
             return
-
 
         # entring each ad...
         for ad in all_ads_on_site:
@@ -240,7 +239,6 @@ def scrape(under_category_object):
                     ad_price = section.find('div', class_="u-t1")
                 except IOError:
                     print("Error trying to access text element of section_element")
-
 
             # finding the postnr for the ads
             ad_location_div = soup.find('div', class_="panel u-mt32")
@@ -312,7 +310,7 @@ def scrape(under_category_object):
                             print(f"This ad does not have a description element: {ad_link}")
 
                 # If table is empty, we go straight to scrapping the description
-                elif ad_description is not None :
+                elif ad_description is not None:
                     product_type = scrape_type_from_add_description(ad_description, type_array)
                     product_brand = scrape_brand_from_ad_description(ad_description, brand_array)
 
@@ -328,12 +326,13 @@ def scrape(under_category_object):
                 # Otherwise, splitting the price "kr" and adding it to the sheet
                 else:
                     count_to_sale += 1
+                    number_of_ads_scraped += 1
                     price = ad_price.text.replace(" ", "").split("kr")[0]
                     ws.append(
-                        [ad_title, under_category_title, product_type, price, product_brand, ad_postnr, "", ad_finn_code])
+                        [ad_title, under_category_title, product_type, price, product_brand, ad_postnr, "",
+                         ad_finn_code])
             else:
                 count_no_to_sale += 1
-
 
         # Next-page
         print(f"Page {page_number} of category {under_category_title} is done")
@@ -341,6 +340,7 @@ def scrape(under_category_object):
 
         # Saving file for each page that is scraped
         wb.save(filename)
+
 
 # Starting the algoritm (Scrapping)
 start()
