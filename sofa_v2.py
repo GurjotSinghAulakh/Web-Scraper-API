@@ -18,7 +18,8 @@ all_sofa_brands = ["ikea", "møbelringen", "ekornes", "stordal", "bohus", "milan
 
 ikea_sofa_models = ["angby", "backamo", "ekeskog", "ektorp", "goteborg", "harnosand", "hovas", "karlanda", "karlstad",
                     "kivik", "kramfors", "lillberg", "nikkala", "sandby", "stockholm", "stromstad", "tomelilla",
-                    "tylosand", "klobo", "gronlid", "farlov", "soderhamn", "norsborg", "friheten", "vimle", "strandmon"]
+                    "tylosand", "klobo", "gronlid", "farlov", "soderhamn", "norsborg", "friheten", "vimle", "strandmon",
+                    "söderhamn"]
 
 bolia_sofa_models = ["scandinavia", "elton", "lomi", "paste", "north", "cloud", "sepia", "hannah", "madison", "grace",
                      "fuuga", "noora", "cosima", "casia", "cosy", "angel", "jerome", "mr. big", "aya", "orlando",
@@ -29,18 +30,17 @@ all_sofa_models = ["angby", "backamo", "ekeskog", "ektorp", "goteborg", "harnosa
                     "tylosand", "klobo", "gronlid", "farlov", "soderhamn","norsborg", "friheten", "vimle", "scandinavia",
                     "elton", "lomi", "paste", "north", "cloud", "sepia", "hannah", "madison", "grace", "fuuga",
                     "noora", "cosima", "casia", "cosy", "angel", "jerome", "mr. big", "aya", "orlando",
-                    "recover", "orlando outdoor", "strandmon"]
+                    "recover", "orlando outdoor", "strandmon", "söderhamn"]
 
 sofa_brand_and_model = [{"brand": "ikea", "model": ikea_sofa_models},
                         {"brand": "bolia", "model": bolia_sofa_models},
                         {"brand": "ekornes", "model": [None]},
-                        {"brand": "stordal", "model": [None]}]
+                        {"brand": "stordal", "model": [None]},
+                        {"brand": ""}
+                        ]
 
 # under categries
 # sofa_under_categories = ["2-seter", "3-seter", "hjørnesofaer", "lenestoler", "puffer", "sofagrupper", "sovesofaer"]
-
-# colors
-sofa_colors = ["hvit", "grå", "svart", "brun", "turkis", "gul", "rød", "rosa", "grønn", "oransj"]
 
 # dictionary
 sofa_dictionary = [
@@ -130,7 +130,7 @@ ws = wb["Sofa"]
 ws.append(["Varenavn", "Kategori", "Pris", "Merke", "Modell", "Postnummer", "Lokasjon", "Finn kode"])
 
 # Naming the output excel file:
-filename = "sofa-test04.07.xlsx"
+filename = "sofa.xlsx"
 
 
 # this function scrapes date from each under-category
@@ -138,7 +138,6 @@ filename = "sofa-test04.07.xlsx"
 def scrape(under_category_object):
     under_category_title = under_category_object["category"]
     category_link = under_category_object["link"]
-    # type_array = under_category_object["type"]
 
     global ad_finn_code_span, ad_html_code, ad_price, ad_location
     global page_html_code, ad_title, ad_payment_type
@@ -163,7 +162,8 @@ def scrape(under_category_object):
             wb.save(filename)
             return
 
-        # entring each ad...
+
+        # ------------------------------------ Entering ad ------------------------------------
         for ad in all_ads_on_page:
             ad_link_code = ad.find('a', href=True)      # extracting the ad_link_code
             ad_link = ad_link_code['href']              # extracting the ad_link
@@ -206,7 +206,6 @@ def scrape(under_category_object):
 
             # ------------------------------------ ad_description  ------------------------------------
             # finding brand and under-category form ad_description
-            table_additional_info_html_code = soup.find('table', class_="u-width-auto u-mt16")
             ad_description_div_element = soup.find('div', class_="preserve-linebreaks")
 
             product_brand = ""

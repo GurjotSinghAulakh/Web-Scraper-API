@@ -14,3 +14,11 @@ array = tekststreng.split(" ")
 
 for word in array:
     word2 = word
+
+import datetime
+dt = datetime.datetime.today()
+year = str(dt.year)
+month = str(dt.month)
+day = str(dt.day)
+
+print(f"sofa-{day}.{month}.{year}")

@@ -94,7 +94,7 @@ appliances_dictionary = [
 
 
 def start():
-    # Each under category gets it own thread
+    # Each under category will be scraped on its own thread
     for dictionary_element in appliances_dictionary:
         # args only accepts tuple element, therefore we have to include (,)
         thread = threading.Thread(target=scrape, args=(dictionary_element,))
@@ -128,15 +128,20 @@ def scrape_type_from_add_description(div_element, type_array):
         return None
 
 
-now = datetime.now()
+dt = datetime.today()
+year = str(dt.year)
+month = str(dt.month)
+day = str(dt.day)
 
-filename = f"Hvitevarer--{now}.xlsx"
+today = f"{day}.{month}.{year}"
+
+filename = f"Hvitevarer_{today}.xlsx"
 wb = Workbook()
 wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
 ws.append(["Varenavn", "Kategori", "Under-Kategori", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn kode"])
 
-count_no_price = 0
+count_ad_has_no_price = 0
 count_no_to_sale = 0
 count_to_sale = 0
 
@@ -149,9 +154,10 @@ def scrape(under_category_object):
     brand_array = under_category_object["brand"]
     type_array = under_category_object["type"]
 
+    # TODO: update links to only include, private sellers, and items which is only for sales
     global ad_finn_code_span, ad_html_code, ad_price, ad_location
     global page_html_code, ad_title, ad_payment_type
-    global count_no_price, count_no_to_sale, count_to_sale
+    global count_ad_has_no_price, count_no_to_sale, count_to_sale
 
     number_of_ads_scraped = 0       # used to count number of ads scraped from an under-category
     page_number = 1                 # used for counting number of pages scraped and to move to next ad-page
@@ -163,13 +169,15 @@ def scrape(under_category_object):
 
         all_ads_on_page = soup.find_all('article', class_="ads__unit")  # finding all ads on the page
 
-        # Ending the script for "this" undercategory, if there are no more ads to be scraped
+        # ------------------------------------ Save & exit ------------------------------------
+        # Ending the script for "this" under-category, if there are no more ads to be scraped
         if len(all_ads_on_page) <= 1:
             print(f"[END_OF_ADS]: Total ads from category: {under_category_title} collected is {number_of_ads_scraped}")
+            print(f"[Info] : Total ads that was for sale and had no price from under-category: {under_category_title} is {count_ad_has_no_price}")
             wb.save(filename)
             return
 
-        # entring each ad...
+        # ------------------------------------ Entering ad ------------------------------------
         for ad in all_ads_on_page:
             ad_link_code = ad.find('a', href=True)  # extracting the ad_link_code
             ad_link = ad_link_code['href']          # extracting the ad_link
@@ -180,68 +188,37 @@ def scrape(under_category_object):
             if sponsored_ad is not None:
                 continue
 
+            # ------------------------------------ Entered ad ------------------------------------
             # checking if the ads exists
             try:
                 ad_html_code = requests.get(f'{ad_link}').text  # fetching the html code for each ad
-            except IOError:
-                print(f"Ad link does not exist {ad_link}")
+            except AttributeError as err:
+                print("[Critical] : Error trying to access html text of ad (ad_html_code): ", err)
+            except:
+                print("[Critical] : Unexpected error occurred when trying to access html text of ad (ad_html_code):")
 
             soup = BeautifulSoup(ad_html_code, 'lxml')  # making the html code compact
 
-            # extracting the finn code for each ad using a div, which holds table:
-            try:
-                ad_finn_div_table = soup.find('div', class_="panel u-text-left")
-                if ad_finn_div_table is not None:
-                    ad_finn_code_span = ad_finn_div_table.find('span', class_="u-select-all")
-            except IOError:
-                print(f"Div table for ad: {ad_link} does not exist")
-
-            # ad_finn_code is "finnkode"
-            ad_finn_code = ""
-
-            if ad_finn_code_span is None:
-                print(f"This ad does not have finn code {ad_link}")
-            else:
-                try:
-                    ad_finn_code = ad_finn_code_span.text
-                except IOError:
-                    print(f"This ad {ad_link} has finn_code_span but no text element")
-
+            # ------------------------------------ Section element ------------------------------------
             # each ad inn "finn.no" has a section with class_name "panel u-mb16"
-            # section has information about ad-title, ad-payment-type and ad-price
+            # section has ad-title, ad-payment-type and ad-price
             section = soup.find('section', class_="panel u-mb16")
 
             # handling None-pointer exception
-            if section is None:
-                print(f"This ad does not have a section element : {ad_link}")
-            else:
+            if section is not None:
+                # if the section element exist, extract as much info as possible
                 try:
                     ad_title = (section.find('h1', class_="u-t2 u-mt16")).text
                     ad_payment_type = (section.find('div', class_="u-t4")).text
-                    ad_price = section.find('div', class_="u-t1")
-                except IOError:
-                    print("[Warning] : Error trying to access text element of section_element")
-
-            # finding the postnr for the ads
-            ad_location_div = soup.find('div', class_="panel u-mt32")
-
-            if ad_location_div is None:
-                print(f"This ad does not have a location element : {ad_link}")
+                    ad_price = section.find('div', class_="u-t1")  # sometimes ads don't have price, therefore no .text
+                except AttributeError as err:
+                    print("[Critical] : Error trying to access text element of section_element: ", err)
+                except:
+                    print("[Critical] : Unexpected error occured in section element, line 188")
             else:
-                ad_location = ad_location_div.find('h3')
+                print(f"[Info] : This ad does not have a section element : {ad_link}")
 
-            # There are two types of address used in finn.no
-            # 1. 0231 Oslo
-            # 2. Gule gata 4, 3487 Kongsberg
-            # We will handle both here, and extract the post number
-            comma = ","
-
-            if ad_location.text is not None and comma in ad_location.text:
-                postnr_og_postadreese = ad_location.text.split(",")[-1]
-                ad_postnr = postnr_og_postadreese.strip().split(" ")[0]
-            else:
-                ad_postnr = ad_location.text.strip().split(" ")[0]
-
+            # ------------------------------------ ad_description & table ------------------------------------
             # finding additional data about the ad
             table_additional_info_html_code = soup.find('table', class_="u-width-auto u-mt16")
             ad_description = soup.find('div', class_="preserve-linebreaks")
@@ -280,16 +257,15 @@ def scrape(under_category_object):
                     if found_brand is False:
                         if ad_description is not None:
                             product_brand = scrape_brand_from_ad_description(ad_description, brand_array)
-
                         else:
-                            print(f"This ad does not have a description element: {ad_link}")
+                            print(f"[Warning] : This ad does not have a description element: {ad_link}")
 
                     if found_type is False:
                         if ad_description is not None:
                             product_type = scrape_type_from_add_description(ad_description, type_array)
 
                         else:
-                            print(f"This ad does not have a description element: {ad_link}")
+                            print(f"[Warning] : This ad does not have a description element: {ad_link}")
 
                 # If table is empty, we go straight to scrapping the description
                 elif ad_description is not None:
@@ -297,13 +273,56 @@ def scrape(under_category_object):
                     product_brand = scrape_brand_from_ad_description(ad_description, brand_array)
 
                 else:
-                    print(f"This ad does not have a data table and description element: {ad_link}")
+                    print(f"[Warning] : This ad does not have a data table and description element: {ad_link}")
 
+            # ------------------------------------ Location (post nr) ------------------------------------
+            # finding the postnr for the ads
+            ad_location_div = soup.find('div', class_="panel u-mt32")
+
+            if ad_location_div is None:
+                print(f"This ad does not have a location element : {ad_link}")
+            else:
+                ad_location = ad_location_div.find('h3')
+
+            # There are two types of address used in finn.no
+            # 1. 0231 Oslo
+            # 2. Gule gata 4, 3487 Kongsberg
+            # We will handle both here, and extract the post number
+            comma = ","
+
+            if ad_location.text is not None and comma in ad_location.text:
+                postnr_og_postadreese = ad_location.text.split(",")[-1]
+                ad_postnr = postnr_og_postadreese.strip().split(" ")[0]
+            else:
+                ad_postnr = ad_location.text.strip().split(" ")[0]
+
+            # ------------------------------------ Finn code ------------------------------------
+            # extracting the finn code for each ad, it is located in a div with class = "panel u-text-left":
+            ad_finn_div_table = soup.find('div', class_="panel u-text-left")
+
+            if ad_finn_div_table is not None:
+                ad_finn_code_span = ad_finn_div_table.find('span', class_="u-select-all")
+
+            # ad_finn_code is "finnkode"
+            ad_finn_code = ""
+
+            if ad_finn_code_span is None:
+                print(f"[Info] : This ad does not have finn code {ad_link}")
+            else:
+                try:
+                    ad_finn_code = ad_finn_code_span.text
+                except AttributeError as err:
+                    print(f"[Critical] :  This ad {ad_link} has finn_code_span but no text element", err)
+                except:
+                    print(f"[Critical]: This ad {ad_link} has finn_code_span, but the program was not able to"
+                          f" extract the finncode, because of an unexpected error! ")
+
+            # ------------------------------------ appending to sheet -----------------------------------
             # Scraping only "Til Salgs ads" from finn.no
             if ad_payment_type.lower() == "til salgs":
                 # handling None-pointer exception
                 if ad_price is None:
-                    count_no_price += 1
+                    count_ad_has_no_price += 1
 
                 # Otherwise, splitting the price "kr" and adding it to the sheet
                 else:
@@ -322,7 +341,6 @@ def scrape(under_category_object):
 
         # Saving file for each page that is scraped
         wb.save(filename)
-
 
 # Starting the algoritm (Scrapping)
 start()

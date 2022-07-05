@@ -119,7 +119,7 @@ appliances_dictionary = [
 
 all_finn_code_array = []
 
-count_no_price = 0
+count_ad_has_no_price = 0
 count_no_to_sale = 0
 count_to_sale = 0
 
@@ -147,7 +147,7 @@ def start():
         logging.info(f"[COUNTER]: Products for sale: {count_to_sale}")
 
         # Counter : Products for sale with no price
-        logging.info(f"[COUNTER]: Products for sale with no price: {count_no_price}")
+        logging.info(f"[COUNTER]: Products for sale with no price: {count_ad_has_no_price}")
 
         # Counter : Products not for sale
         logging.info(f"[COUNTER]: Products not for sale (gis bort/ønskes kjøpt):  {count_no_to_sale}")
@@ -238,7 +238,7 @@ def scrape(under_category_object, all_finn_code_array):
 
     global count_no_to_sale, ad_finn_code_span, ad_html_code, page_html_code, ad_title, ad_payment_type, ad_price, ad_location
     global count_to_sale
-    global count_no_price
+    global count_ad_has_no_price
     counter_old_ad = 1
 
     print(f"[LIVE]: Now scraping {under_category_title}")
