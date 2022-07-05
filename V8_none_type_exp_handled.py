@@ -28,79 +28,67 @@ appliances_dictionary = [
         "category": "andre hvitevarer",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.305&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": appliance_under_category,
-        "finnkode": []
+        "type": appliance_under_category
     },
     {
         "category": "frysere",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.72&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": ["fryseboks", "fryseskap", "fryser"],
-        "finnkode": []
+        "type": ["fryseboks", "fryseskap", "fryser"]
     },
     {
         "category": "innbyggingsovner",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.74&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": ["stekeovn", "dampovn", "med platetopp"],  ## Sendere ta med platetopp, sjekk for mer data på finn
-        "finnkode": []
+        "type": ["stekeovn", "dampovn", "med platetopp"]  ## Sendere ta med platetopp, sjekk for mer data på finn
     },
     {
         "category": "kjøleskap",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.292&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": ["kombiskap", "fryser", "side by side"],
-        "finnkode": []
-
+        "type": ["kombiskap", "fryser", "side by side"]
     },
     {
         "category": "komfyrer",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.73&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": ["med keramisk", "gasskomfyr"],
-        "finnkode": []
+        "type": ["med keramisk", "gasskomfyr"]
     },
     {
         "category": "mikrobølgeovner",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.77&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": [None],
-        "finnkode": []
+        "type": [None]
     },
     {
         "category": "oppvaskmaskiner",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.78&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": [None],
-        "finnkode": []
+        "type": [None]
     },
     {
         "category": "platetopper",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.75&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": ["induksjon", "keramisk"],
-        "finnkode": []
+        "type": ["induksjon", "keramisk"]
     },
     {
         "category": "tørketromler",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.80&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": [None],
-        "finnkode": []
+        "type": [None]
     },
     {
         "category": "vaskemaskiner",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.79&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": ["tørketrommel"],
-        "finnkode": []
+        "type": ["tørketrommel"]
     },
     {
         "category": "ventilatorer",
         "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.76&segment=1&sort=PUBLISHED_DESC",
         "brand": appliances_brand,
-        "type": [None],
-        "finnkode": []
+        "type": [None]
     }
 ]
 
@@ -140,11 +128,9 @@ def scrape_type_from_add_description(div_element, type_array):
         return None
 
 
-# This part of the code is "hardcoded" for the category "hvitevarer"
-# TODO: make this part of the code dynamic
 now = datetime.now()
 
-filename = f"/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/[STATIC] Scrapped Data/Hvitevarer--{now}.xlsx"
+filename = f"Hvitevarer--{now}.xlsx"
 wb = Workbook()
 wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
@@ -154,11 +140,9 @@ count_no_price = 0
 count_no_to_sale = 0
 count_to_sale = 0
 
-# used for checking for duplicate sponsored ads
-sponsored_ad_links_array = []
-
 
 # this function scrapes date from each under-category
+# each under-category will run scrape function in their own thread
 def scrape(under_category_object):
     under_category_title = under_category_object["category"]
     category_link = under_category_object["link"]
@@ -169,36 +153,29 @@ def scrape(under_category_object):
     global page_html_code, ad_title, ad_payment_type
     global count_no_price, count_no_to_sale, count_to_sale
 
-    number_of_ads_scraped = 0
-
-    # defining a work excel book
-    ws = wb["Hvitevarer"]
-
-    page_number = 1
+    number_of_ads_scraped = 0       # used to count number of ads scraped from an under-category
+    page_number = 1                 # used for counting number of pages scraped and to move to next ad-page
 
     while True:
-        # checking every page for each under-category to scrape data from
-        page_link = category_link + "&page=" + str(page_number)  # creating page link for each page
-        try:
-            page_html_code = requests.get(page_link).text  # extracting the html code from website
-        except IOError:
-            print(f"Page 1 of {under_category_title} does not exist")
+        page_link = category_link + "&page=" + str(page_number)     # creating page link for each page
+        page_html_code = requests.get(page_link).text               # extracting the html code from website
+        soup = BeautifulSoup(page_html_code, 'lxml')                # making the html-code compact
 
-        soup = BeautifulSoup(page_html_code, 'lxml')  # making the html-code compact
-        all_ads_on_site = soup.find_all('article', class_="ads__unit")  # finding all ads in the category
+        all_ads_on_page = soup.find_all('article', class_="ads__unit")  # finding all ads on the page
 
         # Ending the script for "this" undercategory, if there are no more ads to be scraped
-        if len(all_ads_on_site) <= 1:
+        if len(all_ads_on_page) <= 1:
             print(f"[END_OF_ADS]: Total ads from category: {under_category_title} collected is {number_of_ads_scraped}")
             wb.save(filename)
             return
 
         # entring each ad...
-        for ad in all_ads_on_site:
-            ad_link_code = ad.find('a', href=True)  # fetching the ad_link
-            ad_link = ad_link_code['href']  # fetching the ad_link
+        for ad in all_ads_on_page:
+            ad_link_code = ad.find('a', href=True)  # extracting the ad_link_code
+            ad_link = ad_link_code['href']          # extracting the ad_link
 
-            # checking if there are any sponsored ads on this category/site
+            # Checking for sponsored ad on the page, the sponsored ad will be ignored because,
+            # the non-sponsored version of the ad will be scraped, so we avoid duplicate ads
             sponsored_ad = ad.find('span', class_="status status--sponsored u-mb8")
             if sponsored_ad is not None:
                 continue
@@ -243,7 +220,7 @@ def scrape(under_category_object):
                     ad_payment_type = (section.find('div', class_="u-t4")).text
                     ad_price = section.find('div', class_="u-t1")
                 except IOError:
-                    print("Error trying to access text element of section_element")
+                    print("[Warning] : Error trying to access text element of section_element")
 
             # finding the postnr for the ads
             ad_location_div = soup.find('div', class_="panel u-mt32")

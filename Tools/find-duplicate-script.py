@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Script will check for duplicates in two excel files,
 # and add the non-duplicate products and its info to another excel sheet named:
-filename = "Hvitevarer-non-duplicate.xlsx"
+filename = "../[STATIC] Scrapped Data/Hvitevarer_uke25.xlsx"
 
 
 wb1 = load_workbook(

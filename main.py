@@ -1,13 +1,16 @@
-array = [1,2,4,5]
-
-for i in range(20):
-    kode = int(input())
+to_ord = ["hei allesammen"]
 
 
-    if kode in array:
-        print("Duplicate sponsored ad")
-        continue
-    else:
-        array.append(kode)
+tekststreng = "dette er en test, hei allesammen"
 
-    print("Hvis contiune funker skal ikk denne meldingen skirves ut!")
+array = tekststreng.split(" ")
+
+# for i in range(len(array)):
+#     if i < len(array)-1:
+#         sammen = array[i] + " " + array[i+1]
+#         if sammen in to_ord:
+#             print("YESSSS")
+
+
+for word in array:
+    word2 = word
