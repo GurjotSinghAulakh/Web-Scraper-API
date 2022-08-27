@@ -36,7 +36,6 @@ sofa_brand_and_model = [{"brand": "ikea", "model": ikea_sofa_models},
                         {"brand": "bolia", "model": bolia_sofa_models},
                         {"brand": "ekornes", "model": [None]},
                         {"brand": "stordal", "model": [None]},
-                        {"brand": ""}
                         ]
 
 # under categries
@@ -225,7 +224,7 @@ def scrape(under_category_object):
 
                         # searching for the model, for that brand
                         for word_2 in ad_title_split:
-                            if word_2 in sofa["model"]:
+                            if word_2.lower() in sofa["model"]:
                                 product_model = word_2
                                 found_model = True
                                 break

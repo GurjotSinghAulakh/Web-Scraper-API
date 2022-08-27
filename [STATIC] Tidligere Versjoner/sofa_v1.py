@@ -248,30 +248,6 @@ def scrape(under_category_object):
 
             # 2. method: finding the brand and/or model from the ad_description:
             if found_brand is False or found_model is False:
-                # if table_additional_info_html_code is not None:
-                #     table_td = (table_additional_info_html_code.find_all('td', class_="u-pl16"))
-                #     for td in table_td:
-                #         if td.text.lower() in brand_array:
-                #             product_brand = td.text.lower()
-                #             found_brand = True
-                #
-                #         if td.text.lower() in type_array:
-                #             product_type = td.text.lower()
-                #             found_type = True
-                #
-                #     # 3. method: finding the brand and type for the product from description:
-                #     if found_brand is False:
-                #         if ad_description is not None:
-                #             product_brand = scrape_brand_from_ad_description(ad_description, brand_array)
-                #         else:
-                #             print(f"[Info] : This ad does not have a description element: {ad_link}")
-                #
-                #     if found_type is False:
-                #         if ad_description is not None:
-                #             product_type = scrape_type_from_ad_description(ad_description, type_array)
-                #         else:
-                #             print(f"[Info] : This ad does not have a description element: {ad_link}")
-
                 # If table is empty, we go straight to scrapping the description
                 if ad_description_div_element is not None:
                     # if the product model or product brand is not found, we can use the div element to find it
