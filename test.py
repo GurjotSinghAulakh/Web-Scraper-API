@@ -22,71 +22,71 @@ appliance_under_category = ["frysere", "innbyggingsovner", "kjøleskap", "komfyr
                             "platetopper", "tørketromler", "vaskemaskiner", "ventilatorer"]
 
 # Dictionary contains information about each product we can scrape,
-# as of now we have only implemented it for the appliance
+# links have the filters: "Til salgs", "Privat" and "Brukt" applied to them
 appliances_dictionary = [
     {
         "category": "andre hvitevarer",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.305&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.305&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": appliance_under_category
     },
     {
         "category": "frysere",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.72&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.72&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["fryseboks", "fryseskap", "fryser"]
     },
     {
         "category": "innbyggingsovner",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.74&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.74&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["stekeovn", "dampovn", "med platetopp"]  ## Sendere ta med platetopp, sjekk for mer data på finn
     },
     {
         "category": "kjøleskap",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.292&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.292&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["kombiskap", "fryser", "side by side"]
     },
     {
         "category": "komfyrer",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.73&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.73&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["med keramisk", "gasskomfyr"]
     },
     {
         "category": "mikrobølgeovner",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.77&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.77&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": [None]
     },
     {
         "category": "oppvaskmaskiner",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.78&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.78&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": [None]
     },
     {
         "category": "platetopper",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.75&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.75&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["induksjon", "keramisk"]
     },
     {
         "category": "tørketromler",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.80&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.80&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": [None]
     },
     {
         "category": "vaskemaskiner",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.79&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.79&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["tørketrommel"]
     },
     {
         "category": "ventilatorer",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.76&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.76&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": [None]
     }
@@ -112,7 +112,7 @@ def scrape_brand_from_ad_description(div_element, brand_array):
         for word in description_text_array:
             if word.lower() in brand_array:
                 return word.lower()
-        return "Annet merke"
+        return ""
 
 
 def scrape_type_from_add_description(div_element, type_array):

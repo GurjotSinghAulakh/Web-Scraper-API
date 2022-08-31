@@ -22,71 +22,71 @@ appliance_under_category = ["frysere", "innbyggingsovner", "kjøleskap", "komfyr
                             "platetopper", "tørketromler", "vaskemaskiner", "ventilatorer"]
 
 # Dictionary contains information about each product we can scrape,
-# as of now we have only implemented it for the appliance
+# links have the filters: "Til salgs", "Privat" and "Brukt" applied to them
 appliances_dictionary = [
     {
         "category": "andre hvitevarer",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.305&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.305&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": appliance_under_category
     },
     {
         "category": "frysere",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.72&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.72&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["fryseboks", "fryseskap", "fryser"]
     },
     {
         "category": "innbyggingsovner",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.74&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.74&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["stekeovn", "dampovn", "med platetopp"]  ## Sendere ta med platetopp, sjekk for mer data på finn
     },
     {
         "category": "kjøleskap",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.292&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.292&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["kombiskap", "fryser", "side by side"]
     },
     {
         "category": "komfyrer",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.73&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.73&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["med keramisk", "gasskomfyr"]
     },
     {
         "category": "mikrobølgeovner",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.77&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.77&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": [None]
     },
     {
         "category": "oppvaskmaskiner",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.78&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.78&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": [None]
     },
     {
         "category": "platetopper",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.75&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.75&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["induksjon", "keramisk"]
     },
     {
         "category": "tørketromler",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.80&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.80&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": [None]
     },
     {
         "category": "vaskemaskiner",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.79&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.79&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": ["tørketrommel"]
     },
     {
         "category": "ventilatorer",
-        "link": "https://www.finn.no/bap/forsale/search.html?product_category=2.93.3907.76&segment=1&sort=PUBLISHED_DESC",
+        "link": "https://www.finn.no/bap/forsale/search.html?condition=4&product_category=2.93.3907.76&segment=1&sort=PUBLISHED_DESC&trade_type=1",
         "brand": appliances_brand,
         "type": [None]
     }
@@ -112,7 +112,7 @@ def scrape_brand_from_ad_description(div_element, brand_array):
         for word in description_text_array:
             if word.lower() in brand_array:
                 return word.lower()
-        return "Annet merke"
+        return ""
 
 
 def scrape_type_from_add_description(div_element, type_array):
@@ -128,36 +128,25 @@ def scrape_type_from_add_description(div_element, type_array):
         return None
 
 
-dt = datetime.today()
-year = str(dt.year)
-month = str(dt.month)
-day = str(dt.day)
 
-today = f"{day}.{month}.{year}"
 
-filename = f"Hvitevarer_{today}.xlsx"
+filename = "Hvitevarer.xlsx"
 wb = Workbook()
 wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
-ws.append(["Varenavn", "Kategori", "Under-Kategori", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn kode"])
-
-count_ad_has_no_price = 0
-count_no_to_sale = 0
-count_to_sale = 0
+ws.append(["Varenavn", "Kategori", "Under-Kategori", "Pris", "Merke", "Lokasjon", "Finn kode"])
 
 
 # this function scrapes date from each under-category
 # each under-category will run scrape function in their own thread
 def scrape(under_category_object):
+    global ad_html_code
+
     under_category_title = under_category_object["category"]
     category_link = under_category_object["link"]
     brand_array = under_category_object["brand"]
     type_array = under_category_object["type"]
 
-    # TODO: update links to only include, private sellers, and items which is only for sales
-    global ad_finn_code_span, ad_html_code, ad_price, ad_location
-    global page_html_code, ad_title, ad_payment_type
-    global count_ad_has_no_price, count_no_to_sale, count_to_sale
 
     number_of_ads_scraped = 0       # used to count number of ads scraped from an under-category
     page_number = 1                 # used for counting number of pages scraped and to move to next ad-page
@@ -173,17 +162,21 @@ def scrape(under_category_object):
         # Ending the script for "this" under-category, if there are no more ads to be scraped
         if len(all_ads_on_page) <= 1:
             print(f"[END_OF_ADS]: Total ads from category: {under_category_title} collected is {number_of_ads_scraped}")
-            print(f"[Info] : Total ads that was for sale and had no price from under-category: {under_category_title} is {count_ad_has_no_price}")
             wb.save(filename)
             return
 
-        # ------------------------------------ Entering ad ------------------------------------
-        for ad in all_ads_on_page:
-            ad_link_code = ad.find('a', href=True)  # extracting the ad_link_code
-            ad_link = ad_link_code['href']          # extracting the ad_link
 
-            # Checking for sponsored ad on the page, the sponsored ad will be ignored because,
-            # the non-sponsored version of the ad will be scraped, so we avoid duplicate ads
+        for ad in all_ads_on_page:
+            # ----------------Extracting: price, finncode, title, location, ad-link from articles page ----------------
+
+            ad_price = ad.find("div", class_="ads__unit__img__ratio__price")
+            ad_finncode = ad.find("a", class_="ads__unit__link").get('id')  # kan bruke href hvis det ikke funker
+            ad_title = ad.find("a", class_="ads__unit__link").text  # kanksje jeg mpå bruke h2 elementet her??
+            ad_location_div = ad.find("div", class_="ads__unit__content__details")
+            ad_location = ad_location_div.findAll("div")[-1].text
+            ad_link = ad.find("a", class_="ads__unit__link").get("href")
+
+            # Sponsored ad will be ignored
             sponsored_ad = ad.find('span', class_="status status--sponsored u-mb8")
             if sponsored_ad is not None:
                 continue
@@ -193,30 +186,11 @@ def scrape(under_category_object):
             try:
                 ad_html_code = requests.get(f'{ad_link}').text  # fetching the html code for each ad
             except AttributeError as err:
-                print("[Critical] : Error trying to access html text of ad (ad_html_code): ", err)
+                print(f"[Critical] : Error trying to access html text of ad {ad_link}: ", err)
             except:
-                print("[Critical] : Unexpected error occurred when trying to access html text of ad (ad_html_code):")
+                print(f"[Critical] : Unexpected error occurred when trying to access html text of ad {ad_link}:")
 
             soup = BeautifulSoup(ad_html_code, 'lxml')  # making the html code compact
-
-            # ------------------------------------ Section element ------------------------------------
-            # each ad inn "finn.no" has a section with class_name "panel u-mb16"
-            # section has ad-title, ad-payment-type and ad-price
-            section = soup.find('section', class_="panel u-mb16")
-
-            # handling None-pointer exception
-            if section is not None:
-                # if the section element exist, extract as much info as possible
-                try:
-                    ad_title = (section.find('h1', class_="u-t2 u-mt16")).text
-                    ad_payment_type = (section.find('div', class_="u-t4")).text
-                    ad_price = section.find('div', class_="u-t1")  # sometimes ads don't have price, therefore no .text
-                except AttributeError as err:
-                    print("[Critical] : Error trying to access text element of section_element: ", err)
-                except:
-                    print("[Critical] : Unexpected error occured in section element, line 188")
-            else:
-                print(f"[Info] : This ad does not have a section element : {ad_link}")
 
             # ------------------------------------ ad_description & table ------------------------------------
             # finding additional data about the ad
@@ -275,65 +249,20 @@ def scrape(under_category_object):
                 else:
                     print(f"[Warning] : This ad does not have a data table and description element: {ad_link}")
 
-            # ------------------------------------ Location (post nr) ------------------------------------
-            # finding the postnr for the ads
-            ad_location_div = soup.find('div', class_="panel u-mt32")
-
-            if ad_location_div is None:
-                print(f"This ad does not have a location element : {ad_link}")
-            else:
-                ad_location = ad_location_div.find('h3')
-
-            # There are two types of address used in finn.no
-            # 1. 0231 Oslo
-            # 2. Gule gata 4, 3487 Kongsberg
-            # We will handle both here, and extract the post number
-            comma = ","
-
-            if ad_location.text is not None and comma in ad_location.text:
-                postnr_og_postadreese = ad_location.text.split(",")[-1]
-                ad_postnr = postnr_og_postadreese.strip().split(" ")[0]
-            else:
-                ad_postnr = ad_location.text.strip().split(" ")[0]
-
-            # ------------------------------------ Finn code ------------------------------------
-            # extracting the finn code for each ad, it is located in a div with class = "panel u-text-left":
-            ad_finn_div_table = soup.find('div', class_="panel u-text-left")
-
-            if ad_finn_div_table is not None:
-                ad_finn_code_span = ad_finn_div_table.find('span', class_="u-select-all")
-
-            # ad_finn_code is "finnkode"
-            ad_finn_code = ""
-
-            if ad_finn_code_span is None:
-                print(f"[Info] : This ad does not have finn code {ad_link}")
-            else:
-                try:
-                    ad_finn_code = ad_finn_code_span.text
-                except AttributeError as err:
-                    print(f"[Critical] :  This ad {ad_link} has finn_code_span but no text element", err)
-                except:
-                    print(f"[Critical]: This ad {ad_link} has finn_code_span, but the program was not able to"
-                          f" extract the finncode, because of an unexpected error! ")
-
             # ------------------------------------ appending to sheet -----------------------------------
-            # Scraping only "Til Salgs ads" from finn.no
-            if ad_payment_type.lower() == "til salgs":
-                # handling None-pointer exception
-                if ad_price is None:
-                    count_ad_has_no_price += 1
+            # Scraping only "Til Salgs ads" from finn.no, by the help of front-end
 
-                # Otherwise, splitting the price "kr" and adding it to the sheet
-                else:
-                    count_to_sale += 1
-                    number_of_ads_scraped += 1
-                    price = ad_price.text.replace(" ", "").split("kr")[0]
-                    ws.append(
-                        [ad_title, under_category_title, product_type, price, product_brand, ad_postnr, "",
-                         ad_finn_code])
+            # handling None-pointer exception
+            if ad_price is None:
+                print("[INFO] : This ad does not have a price ", ad_link)
+
+            # Otherwise, splitting the price "kr" and adding it to the sheet
             else:
-                count_no_to_sale += 1
+                number_of_ads_scraped += 1
+                price = ad_price.text.replace(" ", "").split("kr")[0]
+                ws.append(
+                    [ad_title, under_category_title, product_type, price, product_brand, ad_location,
+                     ad_finncode])
 
         # Next-page
         print(f"Page {page_number} of category {under_category_title} is done")
