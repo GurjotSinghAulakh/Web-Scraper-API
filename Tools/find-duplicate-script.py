@@ -7,15 +7,15 @@ from datetime import datetime
 
 # Script will check for duplicates in two excel files,
 # and add the non-duplicate products and its info to another excel sheet named:
-filename = "../[STATIC] Scrapped Data/Hvitevarer_uke25.xlsx"
+filename = '/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/[STATIC] Scrapped Data/Hvitevarer_uke28.xlsx'
 
 
 wb1 = load_workbook(
-    '../[STATIC] Scrapped Data/Hvitevarer--2022-06-20 11:35:41.566878.xlsx')
+    '/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/Hvitevarer_12.7.2022.xlsx')
 ws1 = wb1["Hvitevarer"]
 
 wb2 = load_workbook(
-    '../[STATIC] Scrapped Data/Hvitevarer--2022-06-15.xlsx')
+    './Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/[STATIC] Scrapped Data/Hvitevarer_uke25.xlsx')
 ws2 = wb2["Hvitevarer"]
 
 wb = Workbook()

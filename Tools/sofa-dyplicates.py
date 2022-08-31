@@ -7,18 +7,18 @@ from datetime import datetime
 
 # Script will check for duplicates in two excel files,
 # and add the non-duplicate products and its info to another excel sheet named:
-filename = "../[STATIC] Scrapped Data/Hvitevarer_uke33.xlsx"
+filename = "../[STATIC] Scrapped Data/Sofa_uke33.xlsx"
 
-wb1 = load_workbook("/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/Hvitevarer_15.8.2022.xlsx")
-ws1 = wb1["Hvitevarer"]
+wb1 = load_workbook("/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/sofa.xlsx")
+ws1 = wb1["Sofa"]
 
-wb2 = load_workbook("/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/[STATIC] Scrapped Data/Hvitevarer_uke32.xlsx")
-ws2 = wb2["Hvitevarer"]
+wb2 = load_workbook("/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/[STATIC] Scrapped Data/Sofa_uke32.xlsx")
+ws2 = wb2["Sofa"]
 
 wb = Workbook()
-wb.create_sheet("Hvitevarer")
-ws = wb["Hvitevarer"]
-ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn kode"])
+wb.create_sheet("Sofa")
+ws = wb["Sofa"]
+ws.append(["Varenavn", "Kategori", "Pris", "Merke", "Model", "Postnummer", "Lokasjon", "Finn kode"])
 
 for i in range(2, 10_000):
     duplicate = False

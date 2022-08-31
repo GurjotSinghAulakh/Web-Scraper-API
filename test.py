@@ -10,12 +10,6 @@ import requests  # to make request (html-request)
 from bs4 import BeautifulSoup  # to make the html code compact
 from openpyxl import Workbook  # To create excel sheets
 
-from requests_html import HTMLSession
-
-session = HTMLSession()
-
-array = []
-
 # Creating brand arrays:
 appliances_brand = ["samsung", "bosch", "miele", "whirlpool", "electrolux", "grundig", "siemens", "zanussi",
                     "bauknecht",
@@ -134,92 +128,69 @@ def scrape_type_from_add_description(div_element, type_array):
         return None
 
 
-dt = datetime.today()
-year = str(dt.year)
-month = str(dt.month)
-day = str(dt.day)
 
-today = f"{day}.{month}.{year}"
 
-filename = f"Hvitevarer_{today}.xlsx"
+filename = "Hvitevarer.xlsx"
 wb = Workbook()
 wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
-ws.append(["Varenavn", "Kategori", "Under-Kategori", "Pris", "Merke", "Postnummer", "Lokasjon", "Finn kode"])
-
-count_ad_has_no_price = 0
-count_no_to_sale = 0
-count_to_sale = 0
+ws.append(["Varenavn", "Kategori", "Under-Kategori", "Pris", "Merke", "Lokasjon", "Finn kode"])
 
 
 # this function scrapes date from each under-category
 # each under-category will run scrape function in their own thread
 def scrape(under_category_object):
+    global ad_html_code
+
     under_category_title = under_category_object["category"]
     category_link = under_category_object["link"]
     brand_array = under_category_object["brand"]
     type_array = under_category_object["type"]
 
-    # TODO: update links to only include, private sellers, and items which is only for sales
-    global ad_finn_code_span, ad_price, ad_location
-    global page_html_code, ad_title, ad_payment_type
-    global count_ad_has_no_price, count_no_to_sale, count_to_sale
 
-    number_of_ads_scraped = 0  # used to count number of ads scraped from an under-category
-    page_number = 1  # used for counting number of pages scraped and to move to next ad-page
+    number_of_ads_scraped = 0       # used to count number of ads scraped from an under-category
+    page_number = 1                 # used for counting number of pages scraped and to move to next ad-page
 
-    ad_html_code = ""
     while True:
-        page_link = category_link + "&page=" + str(page_number)  # creating page link for each page
-        r = session.get(page_link)
-        all_ads_on_page = r.html.find('.ads__unit')
+        page_link = category_link + "&page=" + str(page_number)     # creating page link for each page
+        page_html_code = requests.get(page_link).text               # extracting the html code from website
+        soup = BeautifulSoup(page_html_code, 'lxml')                # making the html-code compact
 
-
-        # page_html_code = requests.get(page_link).text  # extracting the html code from website
-        # soup = BeautifulSoup(page_html_code, 'lxml')  # making the html-code compact
-        #
-        # all_ads_on_page = soup.find_all('article', class_="ads__unit")  # finding all ads on the page
-
+        all_ads_on_page = soup.find_all('article', class_="ads__unit")  # finding all ads on the page
 
         # ------------------------------------ Save & exit ------------------------------------
         # Ending the script for "this" under-category, if there are no more ads to be scraped
         if len(all_ads_on_page) <= 1:
             print(f"[END_OF_ADS]: Total ads from category: {under_category_title} collected is {number_of_ads_scraped}")
-            print(
-                f"[Info] : Total ads that was for sale and had no price from under-category: {under_category_title} is {count_ad_has_no_price}")
             wb.save(filename)
             return
 
-        # ------------------------------------ Entering ad ------------------------------------
+
         for ad in all_ads_on_page:
-            print(ad)
-            split_info = ad.text.split("\n")
-            try:
-                ad_price = split_info[0]
-                ad_title = split_info[1]
-                ad_location = split_info[3]
+            # ----------------Extracting: price, finncode, title, location, ad-link from articles page ----------------
 
-                print(ad_title, ad_price, ad_location)
-            except:
-                pass
+            ad_price = ad.find("div", class_="ads__unit__img__ratio__price")
+            ad_finncode = ad.find("a", class_="ads__unit__link").get('id')  # kan bruke href hvis det ikke funker
+            ad_title = ad.find("a", class_="ads__unit__link").text  # kanksje jeg mpå bruke h2 elementet her??
+            ad_location_div = ad.find("div", class_="ads__unit__content__details")
+            ad_location = ad_location_div.findAll("div")[-1].text
+            ad_link = ad.find("a", class_="ads__unit__link").get("href")
 
-
-            # ad_link_code = ad.find('a', href=True)  # extracting the ad_link_code
-            # ad_link = ad_link_code['href']  # extracting the ad_link
-            ad_link = ad.absolute_links
-            print(ad_link[0])
+            # Sponsored ad will be ignored
+            sponsored_ad = ad.find('span', class_="status status--sponsored u-mb8")
+            if sponsored_ad is not None:
+                continue
 
             # ------------------------------------ Entered ad ------------------------------------
-            # checking if the ads exist
+            # checking if the ads exists
             try:
-                ad_html_code = requests.get(ad_link[0])  # fetching the html code for each ad
+                ad_html_code = requests.get(f'{ad_link}').text  # fetching the html code for each ad
             except AttributeError as err:
-                print("[Critical] : Error trying to access html text of ad (ad_html_code): ", err)
+                print(f"[Critical] : Error trying to access html text of ad {ad_link}: ", err)
             except:
-                print("[Critical] : Unexpected error occurred when trying to access html text of ad (ad_html_code):")
+                print(f"[Critical] : Unexpected error occurred when trying to access html text of ad {ad_link}:")
 
             soup = BeautifulSoup(ad_html_code, 'lxml')  # making the html code compact
-
 
             # ------------------------------------ ad_description & table ------------------------------------
             # finding additional data about the ad
@@ -278,27 +249,20 @@ def scrape(under_category_object):
                 else:
                     print(f"[Warning] : This ad does not have a data table and description element: {ad_link}")
 
-
-
-
-
             # ------------------------------------ appending to sheet -----------------------------------
-            # Scraping only "Til Salgs ads" from finn.no
-            # if ad_payment_type.lower() == "til salgs":
-            #     # handling None-pointer exception
-            #     if ad_price is None:
-            #         count_ad_has_no_price += 1
-            #
-            #     # Otherwise, splitting the price "kr" and adding it to the sheet
-            #     else:
-            #         count_to_sale += 1
-            #         number_of_ads_scraped += 1
-            #         price = ad_price.text.replace(" ", "").split("kr")[0]
-            #         ws.append(
-            #             [ad_title, under_category_title, product_type, price, product_brand, ad_postnr, "",
-            #              ad_finn_code])
-            # else:
-            #     count_no_to_sale += 1
+            # Scraping only "Til Salgs ads" from finn.no, by the help of front-end
+
+            # handling None-pointer exception
+            if ad_price is None:
+                print("[INFO] : This ad does not have a price ", ad_link)
+
+            # Otherwise, splitting the price "kr" and adding it to the sheet
+            else:
+                number_of_ads_scraped += 1
+                price = ad_price.text.replace(" ", "").split("kr")[0]
+                ws.append(
+                    [ad_title, under_category_title, product_type, price, product_brand, ad_location,
+                     ad_finncode])
 
         # Next-page
         print(f"Page {page_number} of category {under_category_title} is done")
@@ -306,7 +270,6 @@ def scrape(under_category_object):
 
         # Saving file for each page that is scraped
         wb.save(filename)
-
 
 # Starting the algoritm (Scrapping)
 start()
