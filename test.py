@@ -168,7 +168,6 @@ def scrape(under_category_object):
 
         for ad in all_ads_on_page:
             # ----------------Extracting: price, finncode, title, location, ad-link from articles page ----------------
-
             ad_price = ad.find("div", class_="ads__unit__img__ratio__price")
             ad_finncode = ad.find("a", class_="ads__unit__link").get('id')  # kan bruke href hvis det ikke funker
             ad_title = ad.find("a", class_="ads__unit__link").text  # kanksje jeg mpå bruke h2 elementet her??
