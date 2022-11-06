@@ -7,15 +7,15 @@ from datetime import datetime
 
 # Script will check for duplicates in two excel files,
 # and add the non-duplicate products and its info to another excel sheet named:
-filename = '/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/[STATIC] Scrapped Data/Hvitevarer_uke28.xlsx'
+filename = '../Hvitevarer_uke37.xlsx'
 
 
 wb1 = load_workbook(
-    '/Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/Hvitevarer_12.7.2022.xlsx')
+    '/Users/gurjotsinghaulakh/Github Repositories/Web-Scraper-API/Hvitevarer.xlsx')
 ws1 = wb1["Hvitevarer"]
 
 wb2 = load_workbook(
-    './Users/gurjotsinghaulakh/Library/CloudStorage/OneDrive-OsloMet/Jobb/Secundo/Web-Scraper-API-Github/[STATIC] Scrapped Data/Hvitevarer_uke25.xlsx')
+    '/Users/gurjotsinghaulakh/Github Repositories/Web-Scraper-API/Hvitevarer_uke35.xlsx')
 ws2 = wb2["Hvitevarer"]
 
 wb = Workbook()
@@ -23,12 +23,12 @@ wb.create_sheet("Hvitevarer")
 ws = wb["Hvitevarer"]
 ws.append(["Varenavn", "Under kategori", "Kategori (type)", "Pris", "Merke", "Postnummer", "Lokasjon"])
 
-for i in range(2, 10_000):
+for i in range(2, 12_000):
     duplicate = False
-    cell1 = f'H{i}'
+    cell1 = f'G{i}'
     finn_kode1 = ws1[cell1].value
 
-    for k in range(2, 10_000):
+    for k in range(2, 12_000):
         cell2 = f'H{k}'
         finn_kode2 = ws2[cell2].value
 
